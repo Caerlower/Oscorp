@@ -1,0 +1,9 @@
+# Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
+_commit: 2.1.8
+_src_path: gh:algorandfoundation/algokit-fullstack-template
+author_email: manucool123.rich@gmail.com
+author_name: Manav Goyal
+contract_name: oscorp
+preset_name: starter
+project_name: Oscorp
+
