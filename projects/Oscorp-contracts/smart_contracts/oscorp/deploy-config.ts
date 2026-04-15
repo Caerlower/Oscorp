@@ -1,7 +1,6 @@
 import { AlgorandClient } from '@algorandfoundation/algokit-utils'
 import { OscorpFactory } from '../artifacts/oscorp/OscorpClient'
 
-// Below is a showcase of various deployment options you can use in TypeScript Client
 export async function deploy() {
   console.log('=== Deploying Oscorp ===')
 
@@ -14,20 +13,15 @@ export async function deploy() {
 
   const { appClient, result } = await factory.deploy({ onUpdate: 'append', onSchemaBreak: 'append' })
 
-  // If app was just created fund the app account
+  // App requires min balance for ASA creation and inner transfers.
   if (['create', 'replace'].includes(result.operationPerformed)) {
     await algorand.send.payment({
-      amount: (1).algo(),
+      amount: (2).algo(),
       sender: deployer.addr,
       receiver: appClient.appAddress,
     })
+    console.log(`Funded app ${appClient.appClient.appId} for bootstrap operations`)
+  } else {
+    console.log(`Reused app ${appClient.appClient.appId}`)
   }
-
-  const method = 'hello'  
-  const response = await appClient.send.hello({
-    args: { name: 'world' },
-  })
-  console.log(
-    `Called ${method} on ${appClient.appClient.appName} (${appClient.appClient.appId}) with name = world, received: ${response.return}`,
-  )
 }

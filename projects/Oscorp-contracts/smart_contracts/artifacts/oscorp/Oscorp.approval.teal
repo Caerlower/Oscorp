@@ -1,0 +1,885 @@
+#pragma version 11
+#pragma typetrack false
+
+// @algorandfoundation/algorand-typescript/arc4/index.d.ts::Contract.approvalProgram() -> uint64:
+main:
+    intcblock 0 8 1 2 10000
+    bytecblock "usdcAsset" "initialized" "creator" "investor" "treasury" "protocolTreasury" "creatorShareBps" "investorShareBps" "launchpadFeeBps" "approvalThresholdUsdc" "gtmBudgetUsdc" "minPatronPulse"
+    txn ApplicationID
+    bnz main_after_if_else@2
+    // smart_contracts/oscorp/contract.algo.ts:16
+    // initialized = GlobalState<boolean>({ initialValue: false })
+    bytec_1 // "initialized"
+    intc_0 // 0
+    app_global_put
+
+main_after_if_else@2:
+    // smart_contracts/oscorp/contract.algo.ts:15
+    // export class Oscorp extends arc4.Contract {
+    txn NumAppArgs
+    bz main___algots__.defaultCreate@12
+    txn OnCompletion
+    !
+    assert // OnCompletion must be NoOp
+    txn ApplicationID
+    assert
+    pushbytess 0x828972b5 0x370c7072 0xccde8da6 // method "createOscorp(string,string,string,address,address,address,address,uint64,string,string,uint64,uint64,uint64,uint64,uint64,uint64,uint64,uint64,uint64)uint64", method "updatePolicy(uint64,uint64,uint64)void", method "distributeRevenue(axfer)void"
+    txna ApplicationArgs 0
+    match createOscorp updatePolicy distributeRevenue
+    err
+
+main___algots__.defaultCreate@12:
+    // smart_contracts/oscorp/contract.algo.ts:15
+    // export class Oscorp extends arc4.Contract {
+    txn OnCompletion
+    !
+    txn ApplicationID
+    !
+    &&
+    assert // OnCompletion must be NoOp && can only call when creating
+    intc_2 // 1
+    return
+
+
+// smart_contracts/oscorp/contract.algo.ts::Oscorp.createOscorp[routing]() -> void:
+createOscorp:
+    // smart_contracts/oscorp/contract.algo.ts:38
+    // @abimethod()
+    txna ApplicationArgs 1
+    dup
+    intc_0 // 0
+    extract_uint16 // on error: invalid array length header
+    intc_3 // 2
+    +
+    dig 1
+    len
+    ==
+    assert // invalid number of bytes for arc4.dynamic_array<arc4.uint8>
+    extract 2 0
+    txna ApplicationArgs 2
+    dup
+    intc_0 // 0
+    extract_uint16 // on error: invalid array length header
+    intc_3 // 2
+    +
+    dig 1
+    len
+    ==
+    assert // invalid number of bytes for arc4.dynamic_array<arc4.uint8>
+    extract 2 0
+    txna ApplicationArgs 3
+    dup
+    intc_0 // 0
+    extract_uint16 // on error: invalid array length header
+    intc_3 // 2
+    +
+    dig 1
+    len
+    ==
+    assert // invalid number of bytes for arc4.dynamic_array<arc4.uint8>
+    extract 2 0
+    txna ApplicationArgs 4
+    dup
+    len
+    pushint 32 // 32
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
+    txna ApplicationArgs 5
+    dup
+    len
+    pushint 32 // 32
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
+    txna ApplicationArgs 6
+    dup
+    len
+    pushint 32 // 32
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
+    txna ApplicationArgs 7
+    dup
+    len
+    pushint 32 // 32
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
+    txna ApplicationArgs 8
+    dup
+    len
+    intc_1 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    txna ApplicationArgs 9
+    dup
+    intc_0 // 0
+    extract_uint16 // on error: invalid array length header
+    intc_3 // 2
+    +
+    dig 1
+    len
+    ==
+    assert // invalid number of bytes for arc4.dynamic_array<arc4.uint8>
+    extract 2 0
+    txna ApplicationArgs 10
+    dup
+    intc_0 // 0
+    extract_uint16 // on error: invalid array length header
+    intc_3 // 2
+    +
+    dig 1
+    len
+    ==
+    assert // invalid number of bytes for arc4.dynamic_array<arc4.uint8>
+    extract 2 0
+    txna ApplicationArgs 11
+    dup
+    len
+    intc_1 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    txna ApplicationArgs 12
+    dup
+    len
+    intc_1 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    txna ApplicationArgs 13
+    dup
+    len
+    intc_1 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    txna ApplicationArgs 14
+    dup
+    len
+    intc_1 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    txna ApplicationArgs 15
+    dup
+    len
+    pushint 40 // 40
+    ==
+    assert // invalid number of bytes for arc4.tuple<arc4.uint64,arc4.uint64,arc4.uint64,arc4.uint64,arc4.uint64>
+    intc_0 // 0
+    extract_uint64
+    txna ApplicationArgs 15
+    dup
+    len
+    pushint 40 // 40
+    ==
+    assert // invalid number of bytes for arc4.tuple<arc4.uint64,arc4.uint64,arc4.uint64,arc4.uint64,arc4.uint64>
+    intc_1 // 8
+    extract_uint64
+    txna ApplicationArgs 15
+    dup
+    len
+    pushint 40 // 40
+    ==
+    assert // invalid number of bytes for arc4.tuple<arc4.uint64,arc4.uint64,arc4.uint64,arc4.uint64,arc4.uint64>
+    pushint 16 // 16
+    extract_uint64
+    txna ApplicationArgs 15
+    dup
+    len
+    pushint 40 // 40
+    ==
+    assert // invalid number of bytes for arc4.tuple<arc4.uint64,arc4.uint64,arc4.uint64,arc4.uint64,arc4.uint64>
+    pushint 24 // 24
+    extract_uint64
+    txna ApplicationArgs 15
+    dup
+    len
+    pushint 40 // 40
+    ==
+    assert // invalid number of bytes for arc4.tuple<arc4.uint64,arc4.uint64,arc4.uint64,arc4.uint64,arc4.uint64>
+    pushint 32 // 32
+    extract_uint64
+    // smart_contracts/oscorp/contract.algo.ts:60
+    // assert(!this.initialized.value, 'already initialized')
+    intc_0 // 0
+    // smart_contracts/oscorp/contract.algo.ts:16
+    // initialized = GlobalState<boolean>({ initialValue: false })
+    bytec_1 // "initialized"
+    // smart_contracts/oscorp/contract.algo.ts:60
+    // assert(!this.initialized.value, 'already initialized')
+    app_global_get_ex
+    assert // check GlobalState exists
+    !
+    assert // already initialized
+    // smart_contracts/oscorp/contract.algo.ts:61
+    // assert(creatorShareBps + investorShareBps + treasuryShareBps === Uint64(10_000), 'invalid split bps')
+    dig 6
+    dig 6
+    +
+    dig 5
+    +
+    intc 4 // 10000
+    ==
+    assert // invalid split bps
+    // smart_contracts/oscorp/contract.algo.ts:62
+    // assert(launchpadFeeBps <= Uint64(2_000), 'launchpad fee too high')
+    dig 3
+    pushint 2000 // 2000
+    <=
+    assert // launchpad fee too high
+    // smart_contracts/oscorp/contract.algo.ts:17
+    // oscorpName = GlobalState<string>()
+    pushbytes "oscorpName"
+    // smart_contracts/oscorp/contract.algo.ts:64
+    // this.oscorpName.value = oscorpName
+    uncover 19
+    app_global_put
+    // smart_contracts/oscorp/contract.algo.ts:18
+    // category = GlobalState<string>()
+    pushbytes "category"
+    // smart_contracts/oscorp/contract.algo.ts:65
+    // this.category.value = category
+    uncover 18
+    app_global_put
+    // smart_contracts/oscorp/contract.algo.ts:19
+    // metadataUri = GlobalState<string>()
+    pushbytes "metadataUri"
+    // smart_contracts/oscorp/contract.algo.ts:66
+    // this.metadataUri.value = metadataUri
+    uncover 17
+    app_global_put
+    // smart_contracts/oscorp/contract.algo.ts:21
+    // creator = GlobalState<Account>()
+    bytec_2 // "creator"
+    // smart_contracts/oscorp/contract.algo.ts:68
+    // this.creator.value = creator
+    uncover 16
+    app_global_put
+    // smart_contracts/oscorp/contract.algo.ts:22
+    // investor = GlobalState<Account>()
+    bytec_3 // "investor"
+    // smart_contracts/oscorp/contract.algo.ts:69
+    // this.investor.value = investor
+    uncover 15
+    app_global_put
+    // smart_contracts/oscorp/contract.algo.ts:23
+    // treasury = GlobalState<Account>()
+    bytec 4 // "treasury"
+    // smart_contracts/oscorp/contract.algo.ts:70
+    // this.treasury.value = treasury
+    uncover 14
+    app_global_put
+    // smart_contracts/oscorp/contract.algo.ts:24
+    // protocolTreasury = GlobalState<Account>()
+    bytec 5 // "protocolTreasury"
+    // smart_contracts/oscorp/contract.algo.ts:71
+    // this.protocolTreasury.value = protocolTreasury
+    uncover 13
+    app_global_put
+    // smart_contracts/oscorp/contract.algo.ts:27
+    // usdcAsset = GlobalState<Asset>()
+    bytec_0 // "usdcAsset"
+    // smart_contracts/oscorp/contract.algo.ts:72
+    // this.usdcAsset.value = usdcAsset
+    uncover 12
+    app_global_put
+    // smart_contracts/oscorp/contract.algo.ts:29
+    // creatorShareBps = GlobalState<uint64>()
+    bytec 6 // "creatorShareBps"
+    // smart_contracts/oscorp/contract.algo.ts:74
+    // this.creatorShareBps.value = creatorShareBps
+    uncover 7
+    app_global_put
+    // smart_contracts/oscorp/contract.algo.ts:30
+    // investorShareBps = GlobalState<uint64>()
+    bytec 7 // "investorShareBps"
+    // smart_contracts/oscorp/contract.algo.ts:75
+    // this.investorShareBps.value = investorShareBps
+    uncover 6
+    app_global_put
+    // smart_contracts/oscorp/contract.algo.ts:31
+    // treasuryShareBps = GlobalState<uint64>()
+    pushbytes "treasuryShareBps"
+    // smart_contracts/oscorp/contract.algo.ts:76
+    // this.treasuryShareBps.value = treasuryShareBps
+    uncover 5
+    app_global_put
+    // smart_contracts/oscorp/contract.algo.ts:32
+    // launchpadFeeBps = GlobalState<uint64>()
+    bytec 8 // "launchpadFeeBps"
+    // smart_contracts/oscorp/contract.algo.ts:77
+    // this.launchpadFeeBps.value = launchpadFeeBps
+    uncover 4
+    app_global_put
+    // smart_contracts/oscorp/contract.algo.ts:34
+    // approvalThresholdUsdc = GlobalState<uint64>()
+    bytec 9 // "approvalThresholdUsdc"
+    // smart_contracts/oscorp/contract.algo.ts:78
+    // this.approvalThresholdUsdc.value = approvalThresholdUsdc
+    uncover 3
+    app_global_put
+    // smart_contracts/oscorp/contract.algo.ts:35
+    // gtmBudgetUsdc = GlobalState<uint64>()
+    bytec 10 // "gtmBudgetUsdc"
+    // smart_contracts/oscorp/contract.algo.ts:79
+    // this.gtmBudgetUsdc.value = gtmBudgetUsdc
+    uncover 2
+    app_global_put
+    // smart_contracts/oscorp/contract.algo.ts:36
+    // minPatronPulse = GlobalState<uint64>()
+    bytec 11 // "minPatronPulse"
+    // smart_contracts/oscorp/contract.algo.ts:80
+    // this.minPatronPulse.value = minPatronPulse
+    swap
+    app_global_put
+    // smart_contracts/oscorp/contract.algo.ts:82-93
+    // const createdPulse = itxn
+    //   .assetConfig({
+    //     total: pulseTotal,
+    //     decimals: pulseDecimals,
+    //     defaultFrozen: false,
+    //     unitName: pulseUnitName,
+    //     assetName: pulseAssetName,
+    //     manager: Global.currentApplicationAddress,
+    //     reserve: Global.currentApplicationAddress,
+    //     fee: Global.minTxnFee,
+    //   })
+    //   .submit().createdAsset
+    itxn_begin
+    // smart_contracts/oscorp/contract.algo.ts:91
+    // fee: Global.minTxnFee,
+    global MinTxnFee
+    // smart_contracts/oscorp/contract.algo.ts:89
+    // manager: Global.currentApplicationAddress,
+    global CurrentApplicationAddress
+    // smart_contracts/oscorp/contract.algo.ts:90
+    // reserve: Global.currentApplicationAddress,
+    dup
+    itxn_field ConfigAssetReserve
+    itxn_field ConfigAssetManager
+    uncover 3
+    itxn_field ConfigAssetName
+    uncover 3
+    itxn_field ConfigAssetUnitName
+    // smart_contracts/oscorp/contract.algo.ts:86
+    // defaultFrozen: false,
+    intc_0 // 0
+    itxn_field ConfigAssetDefaultFrozen
+    swap
+    itxn_field ConfigAssetDecimals
+    swap
+    itxn_field ConfigAssetTotal
+    // smart_contracts/oscorp/contract.algo.ts:82-92
+    // const createdPulse = itxn
+    //   .assetConfig({
+    //     total: pulseTotal,
+    //     decimals: pulseDecimals,
+    //     defaultFrozen: false,
+    //     unitName: pulseUnitName,
+    //     assetName: pulseAssetName,
+    //     manager: Global.currentApplicationAddress,
+    //     reserve: Global.currentApplicationAddress,
+    //     fee: Global.minTxnFee,
+    //   })
+    pushint 3 // 3
+    itxn_field TypeEnum
+    itxn_field Fee
+    // smart_contracts/oscorp/contract.algo.ts:82-93
+    // const createdPulse = itxn
+    //   .assetConfig({
+    //     total: pulseTotal,
+    //     decimals: pulseDecimals,
+    //     defaultFrozen: false,
+    //     unitName: pulseUnitName,
+    //     assetName: pulseAssetName,
+    //     manager: Global.currentApplicationAddress,
+    //     reserve: Global.currentApplicationAddress,
+    //     fee: Global.minTxnFee,
+    //   })
+    //   .submit().createdAsset
+    itxn_submit
+    itxn CreatedAssetID
+    // smart_contracts/oscorp/contract.algo.ts:26
+    // pulseAsset = GlobalState<Asset>()
+    pushbytes "pulseAsset"
+    // smart_contracts/oscorp/contract.algo.ts:95
+    // this.pulseAsset.value = createdPulse
+    dig 1
+    app_global_put
+    // smart_contracts/oscorp/contract.algo.ts:16
+    // initialized = GlobalState<boolean>({ initialValue: false })
+    bytec_1 // "initialized"
+    // smart_contracts/oscorp/contract.algo.ts:96
+    // this.initialized.value = true
+    intc_2 // 1
+    app_global_put
+    // smart_contracts/oscorp/contract.algo.ts:38
+    // @abimethod()
+    itob
+    pushbytes 0x151f7c75
+    swap
+    concat
+    log
+    intc_2 // 1
+    return
+
+
+// smart_contracts/oscorp/contract.algo.ts::Oscorp.updatePolicy[routing]() -> void:
+updatePolicy:
+    // smart_contracts/oscorp/contract.algo.ts:101
+    // @abimethod()
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_1 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    txna ApplicationArgs 2
+    dup
+    len
+    intc_1 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    txna ApplicationArgs 3
+    dup
+    len
+    intc_1 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    // smart_contracts/oscorp/contract.algo.ts:103
+    // assert(Txn.sender === this.creator.value, 'only creator')
+    txn Sender
+    intc_0 // 0
+    // smart_contracts/oscorp/contract.algo.ts:21
+    // creator = GlobalState<Account>()
+    bytec_2 // "creator"
+    // smart_contracts/oscorp/contract.algo.ts:103
+    // assert(Txn.sender === this.creator.value, 'only creator')
+    app_global_get_ex
+    assert // check GlobalState exists
+    ==
+    assert // only creator
+    // smart_contracts/oscorp/contract.algo.ts:34
+    // approvalThresholdUsdc = GlobalState<uint64>()
+    bytec 9 // "approvalThresholdUsdc"
+    // smart_contracts/oscorp/contract.algo.ts:104
+    // this.approvalThresholdUsdc.value = approvalThresholdUsdc
+    uncover 3
+    app_global_put
+    // smart_contracts/oscorp/contract.algo.ts:35
+    // gtmBudgetUsdc = GlobalState<uint64>()
+    bytec 10 // "gtmBudgetUsdc"
+    // smart_contracts/oscorp/contract.algo.ts:105
+    // this.gtmBudgetUsdc.value = gtmBudgetUsdc
+    uncover 2
+    app_global_put
+    // smart_contracts/oscorp/contract.algo.ts:36
+    // minPatronPulse = GlobalState<uint64>()
+    bytec 11 // "minPatronPulse"
+    // smart_contracts/oscorp/contract.algo.ts:106
+    // this.minPatronPulse.value = minPatronPulse
+    swap
+    app_global_put
+    // smart_contracts/oscorp/contract.algo.ts:101
+    // @abimethod()
+    intc_2 // 1
+    return
+
+
+// smart_contracts/oscorp/contract.algo.ts::Oscorp.distributeRevenue[routing]() -> void:
+distributeRevenue:
+    // smart_contracts/oscorp/contract.algo.ts:110
+    // @abimethod()
+    txn GroupIndex
+    intc_2 // 1
+    -
+    dup
+    gtxns TypeEnum
+    pushint 4 // axfer
+    ==
+    assert // transaction type is axfer
+    // smart_contracts/oscorp/contract.algo.ts:112
+    // assert(this.initialized.value, 'not initialized')
+    intc_0 // 0
+    // smart_contracts/oscorp/contract.algo.ts:16
+    // initialized = GlobalState<boolean>({ initialValue: false })
+    bytec_1 // "initialized"
+    // smart_contracts/oscorp/contract.algo.ts:112
+    // assert(this.initialized.value, 'not initialized')
+    app_global_get_ex
+    assert // check GlobalState exists
+    assert // not initialized
+    // smart_contracts/oscorp/contract.algo.ts:113-120
+    // assertMatch(
+    //   payment,
+    //   {
+    //     assetReceiver: Global.currentApplicationAddress,
+    //     xferAsset: this.usdcAsset.value,
+    //   },
+    //   'invalid payment',
+    // )
+    dup
+    gtxns AssetReceiver
+    // smart_contracts/oscorp/contract.algo.ts:116
+    // assetReceiver: Global.currentApplicationAddress,
+    global CurrentApplicationAddress
+    // smart_contracts/oscorp/contract.algo.ts:113-120
+    // assertMatch(
+    //   payment,
+    //   {
+    //     assetReceiver: Global.currentApplicationAddress,
+    //     xferAsset: this.usdcAsset.value,
+    //   },
+    //   'invalid payment',
+    // )
+    ==
+    dig 1
+    gtxns XferAsset
+    // smart_contracts/oscorp/contract.algo.ts:117
+    // xferAsset: this.usdcAsset.value,
+    intc_0 // 0
+    // smart_contracts/oscorp/contract.algo.ts:27
+    // usdcAsset = GlobalState<Asset>()
+    bytec_0 // "usdcAsset"
+    // smart_contracts/oscorp/contract.algo.ts:117
+    // xferAsset: this.usdcAsset.value,
+    app_global_get_ex
+    assert // check GlobalState exists
+    // smart_contracts/oscorp/contract.algo.ts:113-120
+    // assertMatch(
+    //   payment,
+    //   {
+    //     assetReceiver: Global.currentApplicationAddress,
+    //     xferAsset: this.usdcAsset.value,
+    //   },
+    //   'invalid payment',
+    // )
+    ==
+    &&
+    assert // invalid payment
+    // smart_contracts/oscorp/contract.algo.ts:122
+    // const gross: uint64 = payment.assetAmount
+    gtxns AssetAmount
+    // smart_contracts/oscorp/contract.algo.ts:123
+    // const launchpadFee: uint64 = (gross * this.launchpadFeeBps.value) / Uint64(10_000)
+    intc_0 // 0
+    // smart_contracts/oscorp/contract.algo.ts:32
+    // launchpadFeeBps = GlobalState<uint64>()
+    bytec 8 // "launchpadFeeBps"
+    // smart_contracts/oscorp/contract.algo.ts:123
+    // const launchpadFee: uint64 = (gross * this.launchpadFeeBps.value) / Uint64(10_000)
+    app_global_get_ex
+    assert // check GlobalState exists
+    dig 1
+    *
+    intc 4 // 10000
+    /
+    dup
+    uncover 2
+    // smart_contracts/oscorp/contract.algo.ts:124
+    // const net: uint64 = gross - launchpadFee
+    dig 1
+    -
+    // smart_contracts/oscorp/contract.algo.ts:125
+    // const creatorAmount: uint64 = (net * this.creatorShareBps.value) / Uint64(10_000)
+    intc_0 // 0
+    // smart_contracts/oscorp/contract.algo.ts:29
+    // creatorShareBps = GlobalState<uint64>()
+    bytec 6 // "creatorShareBps"
+    // smart_contracts/oscorp/contract.algo.ts:125
+    // const creatorAmount: uint64 = (net * this.creatorShareBps.value) / Uint64(10_000)
+    app_global_get_ex
+    assert // check GlobalState exists
+    dig 1
+    *
+    intc 4 // 10000
+    /
+    dup
+    cover 2
+    cover 3
+    // smart_contracts/oscorp/contract.algo.ts:126
+    // const investorAmount: uint64 = (net * this.investorShareBps.value) / Uint64(10_000)
+    intc_0 // 0
+    // smart_contracts/oscorp/contract.algo.ts:30
+    // investorShareBps = GlobalState<uint64>()
+    bytec 7 // "investorShareBps"
+    // smart_contracts/oscorp/contract.algo.ts:126
+    // const investorAmount: uint64 = (net * this.investorShareBps.value) / Uint64(10_000)
+    app_global_get_ex
+    assert // check GlobalState exists
+    dig 1
+    *
+    intc 4 // 10000
+    /
+    dup
+    cover 4
+    // smart_contracts/oscorp/contract.algo.ts:127
+    // const treasuryAmount: uint64 = net - creatorAmount - investorAmount
+    swap
+    uncover 2
+    -
+    swap
+    -
+    swap
+    // smart_contracts/oscorp/contract.algo.ts:129
+    // if (launchpadFee > Uint64(0)) {
+    bz distributeRevenue_after_if_else@4
+    // smart_contracts/oscorp/contract.algo.ts:130-137
+    // itxn
+    //   .assetTransfer({
+    //     xferAsset: this.usdcAsset.value,
+    //     assetReceiver: this.protocolTreasury.value,
+    //     assetAmount: launchpadFee,
+    //     fee: Global.minTxnFee,
+    //   })
+    //   .submit()
+    itxn_begin
+    // smart_contracts/oscorp/contract.algo.ts:135
+    // fee: Global.minTxnFee,
+    global MinTxnFee
+    // smart_contracts/oscorp/contract.algo.ts:132
+    // xferAsset: this.usdcAsset.value,
+    intc_0 // 0
+    // smart_contracts/oscorp/contract.algo.ts:27
+    // usdcAsset = GlobalState<Asset>()
+    bytec_0 // "usdcAsset"
+    // smart_contracts/oscorp/contract.algo.ts:132
+    // xferAsset: this.usdcAsset.value,
+    app_global_get_ex
+    assert // check GlobalState exists
+    // smart_contracts/oscorp/contract.algo.ts:133
+    // assetReceiver: this.protocolTreasury.value,
+    intc_0 // 0
+    // smart_contracts/oscorp/contract.algo.ts:24
+    // protocolTreasury = GlobalState<Account>()
+    bytec 5 // "protocolTreasury"
+    // smart_contracts/oscorp/contract.algo.ts:133
+    // assetReceiver: this.protocolTreasury.value,
+    app_global_get_ex
+    assert // check GlobalState exists
+    dig 6
+    itxn_field AssetAmount
+    itxn_field AssetReceiver
+    itxn_field XferAsset
+    // smart_contracts/oscorp/contract.algo.ts:130-136
+    // itxn
+    //   .assetTransfer({
+    //     xferAsset: this.usdcAsset.value,
+    //     assetReceiver: this.protocolTreasury.value,
+    //     assetAmount: launchpadFee,
+    //     fee: Global.minTxnFee,
+    //   })
+    pushint 4 // 4
+    itxn_field TypeEnum
+    itxn_field Fee
+    // smart_contracts/oscorp/contract.algo.ts:130-137
+    // itxn
+    //   .assetTransfer({
+    //     xferAsset: this.usdcAsset.value,
+    //     assetReceiver: this.protocolTreasury.value,
+    //     assetAmount: launchpadFee,
+    //     fee: Global.minTxnFee,
+    //   })
+    //   .submit()
+    itxn_submit
+
+distributeRevenue_after_if_else@4:
+    // smart_contracts/oscorp/contract.algo.ts:139
+    // if (creatorAmount > Uint64(0)) {
+    dig 2
+    bz distributeRevenue_after_if_else@7
+    // smart_contracts/oscorp/contract.algo.ts:140-147
+    // itxn
+    //   .assetTransfer({
+    //     xferAsset: this.usdcAsset.value,
+    //     assetReceiver: this.creator.value,
+    //     assetAmount: creatorAmount,
+    //     fee: Global.minTxnFee,
+    //   })
+    //   .submit()
+    itxn_begin
+    // smart_contracts/oscorp/contract.algo.ts:145
+    // fee: Global.minTxnFee,
+    global MinTxnFee
+    // smart_contracts/oscorp/contract.algo.ts:142
+    // xferAsset: this.usdcAsset.value,
+    intc_0 // 0
+    // smart_contracts/oscorp/contract.algo.ts:27
+    // usdcAsset = GlobalState<Asset>()
+    bytec_0 // "usdcAsset"
+    // smart_contracts/oscorp/contract.algo.ts:142
+    // xferAsset: this.usdcAsset.value,
+    app_global_get_ex
+    assert // check GlobalState exists
+    // smart_contracts/oscorp/contract.algo.ts:143
+    // assetReceiver: this.creator.value,
+    intc_0 // 0
+    // smart_contracts/oscorp/contract.algo.ts:21
+    // creator = GlobalState<Account>()
+    bytec_2 // "creator"
+    // smart_contracts/oscorp/contract.algo.ts:143
+    // assetReceiver: this.creator.value,
+    app_global_get_ex
+    assert // check GlobalState exists
+    dig 5
+    itxn_field AssetAmount
+    itxn_field AssetReceiver
+    itxn_field XferAsset
+    // smart_contracts/oscorp/contract.algo.ts:140-146
+    // itxn
+    //   .assetTransfer({
+    //     xferAsset: this.usdcAsset.value,
+    //     assetReceiver: this.creator.value,
+    //     assetAmount: creatorAmount,
+    //     fee: Global.minTxnFee,
+    //   })
+    pushint 4 // 4
+    itxn_field TypeEnum
+    itxn_field Fee
+    // smart_contracts/oscorp/contract.algo.ts:140-147
+    // itxn
+    //   .assetTransfer({
+    //     xferAsset: this.usdcAsset.value,
+    //     assetReceiver: this.creator.value,
+    //     assetAmount: creatorAmount,
+    //     fee: Global.minTxnFee,
+    //   })
+    //   .submit()
+    itxn_submit
+
+distributeRevenue_after_if_else@7:
+    // smart_contracts/oscorp/contract.algo.ts:149
+    // if (investorAmount > Uint64(0)) {
+    dig 1
+    bz distributeRevenue_after_if_else@10
+    // smart_contracts/oscorp/contract.algo.ts:150-157
+    // itxn
+    //   .assetTransfer({
+    //     xferAsset: this.usdcAsset.value,
+    //     assetReceiver: this.investor.value,
+    //     assetAmount: investorAmount,
+    //     fee: Global.minTxnFee,
+    //   })
+    //   .submit()
+    itxn_begin
+    // smart_contracts/oscorp/contract.algo.ts:155
+    // fee: Global.minTxnFee,
+    global MinTxnFee
+    // smart_contracts/oscorp/contract.algo.ts:152
+    // xferAsset: this.usdcAsset.value,
+    intc_0 // 0
+    // smart_contracts/oscorp/contract.algo.ts:27
+    // usdcAsset = GlobalState<Asset>()
+    bytec_0 // "usdcAsset"
+    // smart_contracts/oscorp/contract.algo.ts:152
+    // xferAsset: this.usdcAsset.value,
+    app_global_get_ex
+    assert // check GlobalState exists
+    // smart_contracts/oscorp/contract.algo.ts:153
+    // assetReceiver: this.investor.value,
+    intc_0 // 0
+    // smart_contracts/oscorp/contract.algo.ts:22
+    // investor = GlobalState<Account>()
+    bytec_3 // "investor"
+    // smart_contracts/oscorp/contract.algo.ts:153
+    // assetReceiver: this.investor.value,
+    app_global_get_ex
+    assert // check GlobalState exists
+    dig 4
+    itxn_field AssetAmount
+    itxn_field AssetReceiver
+    itxn_field XferAsset
+    // smart_contracts/oscorp/contract.algo.ts:150-156
+    // itxn
+    //   .assetTransfer({
+    //     xferAsset: this.usdcAsset.value,
+    //     assetReceiver: this.investor.value,
+    //     assetAmount: investorAmount,
+    //     fee: Global.minTxnFee,
+    //   })
+    pushint 4 // 4
+    itxn_field TypeEnum
+    itxn_field Fee
+    // smart_contracts/oscorp/contract.algo.ts:150-157
+    // itxn
+    //   .assetTransfer({
+    //     xferAsset: this.usdcAsset.value,
+    //     assetReceiver: this.investor.value,
+    //     assetAmount: investorAmount,
+    //     fee: Global.minTxnFee,
+    //   })
+    //   .submit()
+    itxn_submit
+
+distributeRevenue_after_if_else@10:
+    // smart_contracts/oscorp/contract.algo.ts:159
+    // if (treasuryAmount > Uint64(0)) {
+    dup
+    bz distributeRevenue_after_if_else@13
+    // smart_contracts/oscorp/contract.algo.ts:160-167
+    // itxn
+    //   .assetTransfer({
+    //     xferAsset: this.usdcAsset.value,
+    //     assetReceiver: this.treasury.value,
+    //     assetAmount: treasuryAmount,
+    //     fee: Global.minTxnFee,
+    //   })
+    //   .submit()
+    itxn_begin
+    // smart_contracts/oscorp/contract.algo.ts:165
+    // fee: Global.minTxnFee,
+    global MinTxnFee
+    // smart_contracts/oscorp/contract.algo.ts:162
+    // xferAsset: this.usdcAsset.value,
+    intc_0 // 0
+    // smart_contracts/oscorp/contract.algo.ts:27
+    // usdcAsset = GlobalState<Asset>()
+    bytec_0 // "usdcAsset"
+    // smart_contracts/oscorp/contract.algo.ts:162
+    // xferAsset: this.usdcAsset.value,
+    app_global_get_ex
+    assert // check GlobalState exists
+    // smart_contracts/oscorp/contract.algo.ts:163
+    // assetReceiver: this.treasury.value,
+    intc_0 // 0
+    // smart_contracts/oscorp/contract.algo.ts:23
+    // treasury = GlobalState<Account>()
+    bytec 4 // "treasury"
+    // smart_contracts/oscorp/contract.algo.ts:163
+    // assetReceiver: this.treasury.value,
+    app_global_get_ex
+    assert // check GlobalState exists
+    dig 3
+    itxn_field AssetAmount
+    itxn_field AssetReceiver
+    itxn_field XferAsset
+    // smart_contracts/oscorp/contract.algo.ts:160-166
+    // itxn
+    //   .assetTransfer({
+    //     xferAsset: this.usdcAsset.value,
+    //     assetReceiver: this.treasury.value,
+    //     assetAmount: treasuryAmount,
+    //     fee: Global.minTxnFee,
+    //   })
+    pushint 4 // 4
+    itxn_field TypeEnum
+    itxn_field Fee
+    // smart_contracts/oscorp/contract.algo.ts:160-167
+    // itxn
+    //   .assetTransfer({
+    //     xferAsset: this.usdcAsset.value,
+    //     assetReceiver: this.treasury.value,
+    //     assetAmount: treasuryAmount,
+    //     fee: Global.minTxnFee,
+    //   })
+    //   .submit()
+    itxn_submit
+
+distributeRevenue_after_if_else@13:
+    // smart_contracts/oscorp/contract.algo.ts:110
+    // @abimethod()
+    intc_2 // 1
+    return
