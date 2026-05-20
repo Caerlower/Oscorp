@@ -1,0 +1,10 @@
+// Merge into ~/.openclaw/openclaw.json
+{
+  gateway: {
+    http: {
+      endpoints: {
+        chatCompletions: { enabled: true },
+      },
+    },
+  },
+}

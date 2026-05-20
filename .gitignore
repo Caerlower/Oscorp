@@ -123,6 +123,15 @@ celerybeat.pid
 .env
 .env.*
 .envrc
+backend/.env
+x402-payer/.env
+provider-services/**/.env
+provider-services/**/node_modules
+x402-payer/node_modules
+frontend/node_modules
+frontend/dist
+frontend/.env
+node_modules/
 .venv
 env/
 venv/
@@ -168,6 +177,9 @@ cython_debug/
 # Received approval test files
 *.received.*
 
-# NPM
-node_modules
+# NPM (if re-added)
+node_modules/
+
+# Local dev stack logs (scripts/dev-up.sh)
+.dev-logs/
 

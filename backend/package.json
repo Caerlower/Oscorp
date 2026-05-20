@@ -1,0 +1,7 @@
+{
+  "name": "oscorp-backend-scripts",
+  "private": true,
+  "scripts": {
+    "dev": "uvicorn app.api.main:app --reload --host 127.0.0.1 --port 8000"
+  }
+}

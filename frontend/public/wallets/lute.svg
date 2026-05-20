@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 56" role="img" aria-label="Lute Wallet">
+  <rect width="56" height="56" rx="12" fill="#000"/>
+  <g fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round">
+    <path d="M28 28c0-9 7-16 15-16 3 0 5.5 1.2 7.5 3"/>
+    <path d="M28 28c-8 0-14.5 7-14.5 15 0 3 1.2 5.5 3 7"/>
+    <path d="M28 28c8.5 0 15.5 7 15.5 15 0 2.5-1.2 5-3 6.5"/>
+    <path d="M28 28c0 9-7 16-15 16-3 0-5.5-1.2-7.5-3"/>
+    <path d="M28 28c8 0 14.5-7 14.5-15 0-3-1.2-5.5-3-7"/>
+    <path d="M28 28c-8.5 0-15.5-7-15.5-15 0-2.5 1.2-5 3-6.5"/>
+  </g>
+</svg>

@@ -1,0 +1,8 @@
+FROM node:22-slim
+WORKDIR /app
+COPY provider-services /app/provider-services
+RUN cd provider-services/trend-analyzer && npm install \
+ && cd ../hook-generator && npm install \
+ && cd ../thread-generator && npm install
+WORKDIR /app/provider-services/trend-analyzer
+CMD ["npm", "run", "start"]

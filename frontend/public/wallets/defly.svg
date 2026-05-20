@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 56" role="img" aria-label="Defly Wallet">
+  <rect width="56" height="56" rx="12" fill="#0A0A0A"/>
+  <g transform="translate(11 10)">
+    <path fill="#fff" d="M17 24.5L2.5 2.5 17 9.8 31.5 2.5 17 24.5z"/>
+    <path fill="#fff" d="M11.5 24.5h11L17 14.2 22.5 24.5z"/>
+  </g>
+</svg>

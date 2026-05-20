@@ -1,70 +1,14 @@
 {
   "folders": [
-    {
-      "path": "./",
-      "name": "ROOT"
-    },
-    {
-      "path": "./projects/Oscorp-contracts"
-    },
-    {
-      "path": "./projects/Oscorp-frontend"
-    }
+    { "path": ".", "name": "Oscorp" },
+    { "path": "frontend", "name": "Frontend" },
+    { "path": "backend", "name": "Backend" },
+    { "path": "x402-payer", "name": "x402 Payer" },
+    { "path": "provider-services", "name": "Providers" },
+    { "path": "integrations/openclaw", "name": "OpenClaw" }
   ],
   "settings": {
-    "files.exclude": {
-      "projects/": true
-    },
-    "jest.disabledWorkspaceFolders": ["ROOT", "projects"],
+    "python.analysis.extraPaths": ["backend"],
     "dotenv.enableAutocloaking": false
-  },
-  "extensions": {
-    "recommendations": ["joshx.workspace-terminals"]
-  },
-  
-  "tasks": {
-    "version": "2.0.0",
-    "tasks": [
-      {
-        "label": "Build artifacts (+ LocalNet)",
-        "command": "algokit",
-        "args": ["project", "run", "build"],
-        "options": {
-          "cwd": "${workspaceFolder}"
-        },
-        "dependsOn": "Start AlgoKit LocalNet",
-        "problemMatcher": []
-      },
-      {
-        "label": "Start AlgoKit LocalNet",
-        "command": "algokit",
-        "args": ["localnet", "start"],
-        "type": "shell",
-        "options": {
-          "cwd": "${workspaceFolder}"
-        },
-        "problemMatcher": []
-      }
-    ]
-  },
-  "launch": {
-    "configurations": [],
-    "compounds": [
-      {
-        "preLaunchTask": "Build artifacts (+ LocalNet)",
-        "name": "Run Frontend (+ LocalNet and Smart Contract)",
-        "configurations": [
-          {
-            "name": "Deploy contracts",
-            "folder": "Oscorp-contracts"
-          },
-          { "name": "Run dApp", "folder": "Oscorp-frontend" }
-        ],
-        "presentation": {
-          "hidden": false,
-          "group": "0. Run workspace"
-        }
-      }
-    ]
   }
-  }
+}

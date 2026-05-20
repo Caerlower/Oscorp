@@ -1,0 +1,56 @@
+services:
+  x402-payer:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.x402-payer
+    env_file:
+      - ../x402-payer/.env.example
+    ports:
+      - "8110:8110"
+
+  trend-analyzer:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.x402-provider
+    env_file:
+      - ../provider-services/trend-analyzer/.env.example
+    command: npm run start
+    working_dir: /app/provider-services/trend-analyzer
+    ports:
+      - "8101:8101"
+
+  hook-generator:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.x402-provider
+    env_file:
+      - ../provider-services/hook-generator/.env.example
+    command: npm run start
+    working_dir: /app/provider-services/hook-generator
+    ports:
+      - "8102:8102"
+
+  thread-generator:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.x402-provider
+    env_file:
+      - ../provider-services/thread-generator/.env.example
+    command: npm run start
+    working_dir: /app/provider-services/thread-generator
+    ports:
+      - "8103:8103"
+
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.backend
+    env_file:
+      - ../backend/.env.example
+    ports:
+      - "8000:8000"
+    depends_on:
+      - x402-payer
+      - trend-analyzer
+      - hook-generator
+      - thread-generator

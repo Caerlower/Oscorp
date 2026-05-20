@@ -1,112 +1,97 @@
 # Oscorp
 
-Oscorp is an autonomous GTM company protocol on Algorand.
+**Telegram + web growth copilot for X** — your agent pays specialist APIs via x402 (TestNet USDC), Groq drafts posts, you approve every publish.
 
-In simple terms:
-- the **contract** stores company rules and treasury settings,
-- the **backend** handles APIs and payment verification,
-- the **agent** executes GTM actions and buys services.
+## What it does
 
-## Why Algorand
+- **Web app**: wallet → policy → fund agent → run cycles → drafts queue with x402 receipts
+- **Telegram** (recommended daily flow): `/link` → `/run` → **Post on X** · **Regenerate** · **Skip**
+- **x402**: USDC micropayments to trend / hook providers (tx links on each draft)
+- **Regenerate**: new copy from Groq only — no extra provider spend
+- **Research**: Groq pre-cycle topics/angles from policy + memory (`OSCORP_GROQ_RESEARCH_ENABLED`)
 
-We use Algorand for the parts that need trust:
-- company state (name, policy, treasury, asset IDs),
-- payment settlement (USDC ASA transfer),
-- payment proof verification (tx id + amount + receiver).
+## Run a growth cycle (dev)
 
-So AI execution is off-chain, but money and rules are on-chain.
+The backend calls **x402-payer** (`:8110`), which pays **provider-services** (`:8101`–`:8103`). If you only run the API + frontend, **Start agent** will fail with a connection error.
 
-## Simple architecture
+**Option A — full stack** (real x402 micropayments):
+
+```bash
+cd Oscorp
+./scripts/dev-up.sh              # background: payer, providers, backend, telegram (if token set)
+cd frontend && npm run dev       # web UI
+./scripts/dev-down.sh            # stop background services
+```
+
+Or `./scripts/dev-stack.sh` for manual per-terminal control.
+
+Minimum for one cycle: **x402-payer**, **trend-analyzer**, **hook-generator**, **backend**, **frontend**.
+
+**Option B — stub providers** (Groq draft only, no x402):
+
+```bash
+# backend/.env
+OSCORP_PROVIDER_STUB=true
+```
+
+Restart uvicorn after changing `.env`.
+
+## Architecture (current default)
 
 ```mermaid
 flowchart TB
-    U[User / Founder]
+    U[User]
+    W[Web App]
+    TG[Telegram Bot]
     B[Oscorp Backend]
-    A[Oscorp Agent]
-    C[(Algorand)]
+    XP[x402 Payer]
+    P1[Trend API]
+    P2[Hook API]
+    F[Facilitator]
 
-    U --> B
-    A --> B
-    B --> C
-    C --> B
-
-    B --> P1[402 Payment Challenge]
-    A --> P2[x402 Pay Request]
-    B --> P3[USDC ASA Transfer + Verify]
-    B --> P4[Service Fulfillment]
-    A --> P5[Queue X Post]
+    U --> W & TG
+    TG --> B
+    W --> B
+    B --> XP --> P1 & P2
+    P1 & P2 --> F
 ```
 
-## End-to-end flow
+## Agents / services in the stack
 
-1. Create company (`Oscorp app`).
-2. Store company policy on-chain.
-3. Agent requests a paid service.
-4. Backend returns `402 Payment Required`.
-5. Agent triggers `/x402/pay`.
-6. Backend sends USDC ASA transfer and verifies on-chain.
-7. Service is fulfilled.
-8. Agent generates and queues outbound post text.
+| Component | Role |
+|-----------|------|
+| **Oscorp backend** | Orchestrator, wallet, policy, cycles |
+| **Groq** | Draft copy + Telegram conversation |
+| **x402-payer** | Signs USDC payments from agent wallet |
+| **Provider APIs** | Trend, hook, thread specialists (paid via x402) |
+| **Telegram bot** | User chat, memory, cycle triggers |
+| **Frontend** | Wallet UI, onboarding, drafts |
 
-## Demo command (recommended)
+Research uses **Groq only** (no live X API). See [docs/growth-research.md](docs/growth-research.md).
 
-Run this for presentation:
+## Quick start
 
 ```bash
-cd projects/Oscorp-agent
-python3 -m oscorp_agent demo-cycle
+# 1) Env
+cd backend && cp .env.example .env   # add GROQ_API_KEY, TELEGRAM_BOT_TOKEN
+cd ../frontend && cp .env.example .env
+
+# 2) See scripts/dev-stack.sh — start payer, providers, backend, telegram, frontend
+./scripts/dev-stack.sh
 ```
 
-What it shows:
-- 402 challenge
-- x402 payment
-- on-chain payment proof
-- service fulfillment
-- AI-style generated post text (queued, not live-posted)
+Open http://127.0.0.1:5173
 
-## Quick setup
+## Docs
 
-```bash
-# 1) LocalNet
-algokit localnet start
+- [Env setup](docs/env-setup.md)
+- [Telegram](docs/telegram.md)
+- [x402 on Algorand](docs/x402-algorand.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Growth research (Groq)](docs/growth-research.md)
 
-# 2) Backend
-cd projects/Oscorp-backend
-pnpm install
-cp .env.example .env
-pnpm run dev
+## DoraHacks pitch
 
-# 3) Agent
-cd ../Oscorp-agent
-pip3 install --user -e .
-cp .env.example .env
-python3 -m oscorp_agent demo-cycle
-```
+**Problem:** X growth needs paid specialist tools and a controlled agent budget — not fake analytics.
 
-## Required env keys (minimal)
-
-Backend (`projects/Oscorp-backend/.env`):
-- `USDC_ASSET_ID`
-- `OSCORP_API_KEY`
-- `OSCORP_PAYMENT_MNEMONIC`
-
-Agent (`projects/Oscorp-agent/.env`):
-- `OSCORP_API_URL`
-- `OSCORP_API_KEY` (must match backend)
-- `OSCORP_ID`
-- `TX_EXPLORER_BASE_URL`
-
-## Repo layout
-
-```text
-Oscorp/
-├── projects/Oscorp-contracts
-├── projects/Oscorp-backend
-└── projects/Oscorp-agent
-```
-
-## Current status
-
-- `demo-cycle` is stable for stage demos
-- `start` mode uses LLM continuously and can be rate-limited
-- replay protection is currently in-memory
+**Solution:** Oscorp runs a funded **agent wallet**, pays providers via **x402 on Algorand**, drafts on **Groq**, and keeps humans in the loop before posting.

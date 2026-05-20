@@ -1,0 +1,7 @@
+FROM node:22-slim
+WORKDIR /app
+COPY x402-payer/package.json x402-payer/
+WORKDIR /app/x402-payer
+RUN npm install
+COPY x402-payer/ ./
+CMD ["npm", "run", "start"]

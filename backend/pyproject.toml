@@ -1,0 +1,26 @@
+[project]
+name = "oscorp-backend"
+version = "0.4.0"
+description = "Oscorp — X growth operator backend (Groq research + x402)"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.115.0",
+  "uvicorn[standard]>=0.32.0",
+  "pydantic>=2.9.0",
+  "pydantic-settings>=2.6.0",
+  "httpx>=0.28.0",
+  "openai>=1.55.0",
+  "py-algorand-sdk>=2.7.0",
+  "python-dotenv>=1.0.1",
+  "python-telegram-bot>=21.6",
+]
+
+[project.optional-dependencies]
+dev = ["ruff>=0.8.0"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
