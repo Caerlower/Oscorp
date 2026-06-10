@@ -342,7 +342,15 @@ def company_name_from_scrape(scrape: dict[str, Any], *, fallback: str) -> str:
     title = str(meta.get("title") or meta.get("ogTitle") or "").strip()
     if not title:
         return fallback
-    return title.split(" - ")[0].split(" | ")[0].split(" — ")[0].strip() or fallback
+    name = title.split(" - ")[0].split(" | ")[0].split(" — ")[0].strip()
+    if not name:
+        return fallback
+    lowered = name.lower()
+    if lowered.startswith("www."):
+        name = name[4:]
+    if "." in name and name.count(" ") == 0:
+        return fallback
+    return name
 
 
 def company_category_from_scrape(scrape: dict[str, Any]) -> str:

@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import UTC, datetime
+import re
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from app.analytics.company import format_company_context_block, parse_company_profile
@@ -15,7 +16,8 @@ from app.analytics.seo import (
 from app.analytics.lighthouse import run_lighthouse
 from app.analytics.scrape import scrape_website
 from app.core.groq_client import is_groq_rate_limit
-from app.analytics.utils import domain_from_url, favicon_url, normalize_url
+from app.analytics.competitors import company_name_from_scrape
+from app.analytics.utils import domain_from_url, domain_label, favicon_url, normalize_url
 
 
 def _readability(word_count: int) -> str:
@@ -78,10 +80,21 @@ def _keyword_tags(metadata: dict[str, Any]) -> list[str]:
     return tags
 
 
+def _groq_retry_after_at(exc: Exception) -> str | None:
+    """Parse Groq TPD message e.g. 'try again in 39m26.496s'."""
+    msg = str(exc)
+    match = re.search(r"try again in (\d+)m([\d.]+)?s", msg, re.IGNORECASE)
+    if not match:
+        return None
+    minutes = int(match.group(1))
+    seconds = float(match.group(2) or 0)
+    return (datetime.now(UTC) + timedelta(seconds=minutes * 60 + seconds)).isoformat()
+
+
 def _fallback_analysis(scrape: dict[str, Any], domain: str) -> dict[str, Any]:
     """Placeholder company/docs when Groq rate limit blocks the AI step only."""
     meta = scrape.get("metadata") or {}
-    name = (meta.get("title") or domain).split(" - ")[0].split(" | ")[0].strip()
+    name = company_name_from_scrape(scrape, fallback=domain_label(domain))
     category = str(meta.get("ogType") or "").strip().title() or "Technology"
     return {
         "company": {
@@ -112,6 +125,7 @@ async def run_full_analysis(url: str, company_profile: dict | None = None) -> di
 
     groq_status = "complete"
     groq_message: str | None = None
+    groq_retry_after_at: str | None = None
     profile = parse_company_profile(company_profile)
     company_block = format_company_context_block(profile)
     try:
@@ -121,7 +135,15 @@ async def run_full_analysis(url: str, company_profile: dict | None = None) -> di
     except Exception as exc:
         if is_groq_rate_limit(exc):
             groq_status = "rate_limited"
-            groq_message = "Groq rate limit reached. SEO and technical metrics are live; AI company insights will refresh when quota resets."
+            groq_retry_after_at = _groq_retry_after_at(exc)
+            retry_hint = ""
+            if groq_retry_after_at:
+                retry_hint = " Quota resets automatically — we'll retry when it's back."
+            groq_message = (
+                "Groq daily token limit reached (free tier). "
+                "SEO and technical metrics below are live; AI company documents refresh when quota resets."
+                f"{retry_hint}"
+            )
             analysis = _fallback_analysis(scrape_result, domain)
         else:
             raise
@@ -129,9 +151,13 @@ async def run_full_analysis(url: str, company_profile: dict | None = None) -> di
     response = scrape_result.get("response") or {}
     headings = scrape_result.get("headings") or {}
 
-    competitors, competitors_status = await ensure_market_competitors(
-        analyzed_url, scrape_result, analysis
-    )
+    if groq_status == "rate_limited":
+        competitors = []
+        competitors_status = "rate_limited"
+    else:
+        competitors, competitors_status = await ensure_market_competitors(
+            analyzed_url, scrape_result, analysis
+        )
     analysis["competitors"] = competitors
     if competitors:
         company = analysis.get("company") or {}
@@ -216,5 +242,6 @@ async def run_full_analysis(url: str, company_profile: dict | None = None) -> di
             "provider": "groq",
             "status": groq_status,
             "message": groq_message,
+            "retryAfterAt": groq_retry_after_at,
         },
     }

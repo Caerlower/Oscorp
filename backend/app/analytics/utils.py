@@ -107,7 +107,15 @@ async def resolve_analysis_url(url: str) -> str:
 
 
 def domain_from_url(url: str) -> str:
-    return urlparse(normalize_url(url)).netloc.replace("www.", "")
+    netloc = urlparse(normalize_url(url)).netloc
+    return re.sub(r"^www\.", "", netloc, flags=re.IGNORECASE)
+
+
+def domain_label(domain: str) -> str:
+    """Short display name from a hostname (e.g. algointent.xyz → Algointent)."""
+    host = re.sub(r"^www\.", "", domain.strip(), flags=re.IGNORECASE)
+    label = host.split(".")[0] if host else ""
+    return label[:1].upper() + label[1:] if label else domain
 
 
 def favicon_url(domain: str) -> str:

@@ -56,11 +56,17 @@ def _is_rate_limit(exc: Exception) -> bool:
 def is_groq_rate_limit(exc: Exception) -> bool:
     if _is_rate_limit(exc):
         return True
-    msg = str(exc).lower()
-    if "rate limit" in msg or "rate_limit" in msg or "429" in msg:
-        return True
     status = getattr(exc, "status_code", None)
-    return status == 429
+    if status == 429:
+        return True
+    msg = str(exc).lower()
+    return "rate limit" in msg or "rate_limit_exceeded" in msg
+
+
+def is_groq_daily_token_limit(exc: Exception) -> bool:
+    """Daily TPD caps won't clear in seconds — skip pointless retries."""
+    msg = str(exc).lower()
+    return "tokens per day" in msg or "tpd" in msg or ("per day" in msg and "token" in msg)
 
 
 async def groq_json_completion(
@@ -122,6 +128,13 @@ async def groq_json_completion(
             except Exception as exc:
                 last_error = exc
                 _last_call_finished_at = time.monotonic()
+                if _is_rate_limit(exc) and is_groq_daily_token_limit(exc):
+                    logger.warning(
+                        "Groq daily token limit agent=%s timestamp=%s — skipping retries",
+                        agent_name,
+                        timestamp,
+                    )
+                    raise
                 if _is_rate_limit(exc) and attempt < MAX_RETRIES:
                     wait = RATE_LIMIT_BASE_WAIT * (2**attempt)
                     logger.warning(
@@ -192,6 +205,13 @@ async def groq_chat_completion(
             except Exception as exc:
                 last_error = exc
                 _last_call_finished_at = time.monotonic()
+                if _is_rate_limit(exc) and is_groq_daily_token_limit(exc):
+                    logger.warning(
+                        "Groq daily token limit (chat) agent=%s timestamp=%s — skipping retries",
+                        agent_name,
+                        timestamp,
+                    )
+                    raise
                 if _is_rate_limit(exc) and attempt < MAX_RETRIES:
                     wait = RATE_LIMIT_BASE_WAIT * (2**attempt)
                     logger.warning(

@@ -9,7 +9,6 @@ from app.agents.hackernews.agent import run_hackernews_agent
 from app.agents.hackernews.schemas import HackerNewsRequest, HackerNewsResponse
 from app.agents.linkedin.agent import run_linkedin_agent
 from app.agents.linkedin.schemas import LinkedInRequest, LinkedInResponse
-from app.agents.reddit.schemas import RedditResponse
 from app.agents.twitter.agent import run_twitter_agent
 from app.agents.twitter.schemas import MAX_TWEETS, TwitterRequest, TwitterResponse
 from app.db.supabase_client import SupabaseError, supabase
@@ -45,17 +44,6 @@ def _deliverable_to_tweet(row: dict) -> dict:
         "status": row.get("status", "pending"),
         "slotIndex": row.get("slot_index", 0),
     }
-
-
-async def list_pending_twitter_deliverables(user_id: str, *, day: str | None = None) -> list[dict]:
-    day = day or _utc_today()
-    rows = await supabase.list_agent_deliverables(
-        user_id,
-        agent="twitter",
-        deliverable_date=day,
-        status="pending",
-    )
-    return [_deliverable_to_tweet(row) for row in rows]
 
 
 async def sync_twitter_deliverables(user_id: str, body: TwitterRequest) -> list[dict]:
@@ -112,7 +100,6 @@ PAID_AGENT_DAILY_LIMIT: dict[str, int] = {
     "articles": 1,
     "linkedin": 1,
     "hackernews": 1,
-    "reddit": 5,
 }
 
 
@@ -121,22 +108,61 @@ def _row_content(row: dict) -> dict:
     return content if isinstance(content, dict) else {}
 
 
+def _format_saved_item(row: dict) -> dict:
+    return {**_row_content(row), "id": row["id"]}
+
+
+async def _get_today_slot_deliverable(user_id: str, agent: str, slot_index: int) -> dict | None:
+    """Row for this UTC day + slot, any status (pending or posted)."""
+    today = _utc_today()
+    rows = await supabase.list_agent_deliverables(
+        user_id,
+        agent=agent,
+        deliverable_date=today,
+    )
+    for row in rows:
+        if int(row.get("slot_index", 0)) == slot_index:
+            return row
+    return None
+
+
+def _is_unique_violation(exc: SupabaseError) -> bool:
+    msg = str(exc)
+    return "409" in msg or "23505" in msg
+
+
 async def get_pending_paid_deliverable(user_id: str, agent: str) -> dict | list[dict] | None:
-    """Return the current pending paid-agent output (any date until marked complete)."""
+    """Return pending paid-agent output for today (UTC), else any older pending slot."""
     if agent not in PAID_AGENT_DAILY_LIMIT:
         return None
+
+    def _items_from_rows(rows: list[dict]) -> dict | list[dict] | None:
+        if not rows:
+            return None
+        items = [{**_row_content(row), "id": row["id"]} for row in rows]
+        if agent in ("articles", "linkedin"):
+            return items[0] if items else None
+        return items
+
+    today = _utc_today()
+    today_rows = await supabase.list_agent_deliverables(
+        user_id,
+        agent=agent,
+        deliverable_date=today,
+        status="pending",
+        limit=PAID_AGENT_DAILY_LIMIT[agent],
+    )
+    today_pending = _items_from_rows(today_rows)
+    if today_pending:
+        return today_pending
+
     rows = await supabase.list_agent_deliverables(
         user_id,
         agent=agent,
         status="pending",
         limit=PAID_AGENT_DAILY_LIMIT[agent],
     )
-    if not rows:
-        return None
-    items = [{**_row_content(row), "id": row["id"]} for row in rows]
-    if agent in ("articles", "linkedin"):
-        return items[0] if items else None
-    return items
+    return _items_from_rows(rows)
 
 
 # Backward-compatible alias used by save/restore paths.
@@ -268,20 +294,49 @@ async def save_paid_agent_deliverable(
 
     today = _utc_today()
     payloads = content if isinstance(content, list) else [content]
+    owes_new_slot = await has_unfulfilled_payment_since_last_post(user_id, agent)
     inserted: list[dict] = []
     for slot_index, item in enumerate(payloads[: PAID_AGENT_DAILY_LIMIT[agent]]):
         body = {k: v for k, v in item.items() if k != "id"}
-        row = await supabase.insert_agent_deliverable(
-            {
-                "user_id": user_id,
-                "agent": agent,
-                "slot_index": slot_index,
-                "content": body,
-                "status": "pending",
-                "deliverable_date": today,
-            }
-        )
-        inserted.append({**_row_content(row), "id": row["id"]})
+        existing_row = await _get_today_slot_deliverable(user_id, agent, slot_index)
+        if existing_row:
+            if existing_row.get("status") == "pending":
+                inserted.append(_format_saved_item(existing_row))
+                continue
+            if owes_new_slot:
+                row = await supabase.update_agent_deliverable(
+                    existing_row["id"],
+                    {
+                        "content": body,
+                        "status": "pending",
+                        "posted_at": None,
+                    },
+                )
+                inserted.append(_format_saved_item(row))
+                continue
+            inserted.append(_format_saved_item(existing_row))
+            continue
+
+        try:
+            row = await supabase.insert_agent_deliverable(
+                {
+                    "user_id": user_id,
+                    "agent": agent,
+                    "slot_index": slot_index,
+                    "content": body,
+                    "status": "pending",
+                    "deliverable_date": today,
+                }
+            )
+        except SupabaseError as exc:
+            if not _is_unique_violation(exc):
+                raise
+            raced = await _get_today_slot_deliverable(user_id, agent, slot_index)
+            if not raced:
+                raise
+            inserted.append(_format_saved_item(raced))
+            continue
+        inserted.append(_format_saved_item(row))
 
     if agent in ("articles", "linkedin"):
         return inserted[0] if inserted else {}
@@ -300,9 +355,6 @@ async def persist_paid_agent_result(user_id: str, agent: str, result: object) ->
         elif agent == "hackernews" and isinstance(result, HackerNewsResponse):
             posts = [p.model_dump() for p in result.posts]
             await save_paid_agent_deliverable(user_id, agent, posts)
-        elif agent == "reddit" and isinstance(result, RedditResponse):
-            opps = [o.model_dump() for o in result.opportunities]
-            await save_paid_agent_deliverable(user_id, agent, opps)
     except Exception as exc:
         logger.warning("Failed to persist %s deliverable for %s: %s", agent, user_id[:8], exc)
 

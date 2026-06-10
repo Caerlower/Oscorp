@@ -20,6 +20,24 @@ def normalize_workspace_site(url: str) -> str:
     return host
 
 
+def _analysis_is_rate_limited(analysis: Any) -> bool:
+    if not isinstance(analysis, dict):
+        return False
+    ai = analysis.get("aiAnalysis")
+    if not isinstance(ai, dict):
+        return False
+    return ai.get("status") == "rate_limited"
+
+
+def _analysis_is_complete(analysis: Any) -> bool:
+    if not isinstance(analysis, dict):
+        return False
+    ai = analysis.get("aiAnalysis")
+    if not isinstance(ai, dict):
+        return bool(analysis.get("documents"))
+    return ai.get("status") != "rate_limited"
+
+
 def _empty_workspace(user_id: str, site_url: str) -> dict[str, Any]:
     return {
         "user_id": user_id,
@@ -61,10 +79,14 @@ async def upsert_workspace(user_id: str, *, site_url: str, patch: dict[str, Any]
 
     if "analysis" in patch:
         analysis = patch.get("analysis")
-        row["analysis"] = analysis
-        row["analysis_updated_at"] = (
-            str(analysis.get("analyzedAt") or now) if isinstance(analysis, dict) else now
-        )
+        existing_analysis = existing.get("analysis") if existing else None
+        if _analysis_is_rate_limited(analysis) and _analysis_is_complete(existing_analysis):
+            pass
+        else:
+            row["analysis"] = analysis
+            row["analysis_updated_at"] = (
+                str(analysis.get("analyzedAt") or now) if isinstance(analysis, dict) else now
+            )
     if "company_profile" in patch:
         row["company_profile"] = patch.get("company_profile") or {}
     if "edited_documents" in patch:

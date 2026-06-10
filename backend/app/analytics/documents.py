@@ -8,13 +8,13 @@ from datetime import UTC, datetime
 from typing import Any
 
 from app.config.settings import settings
-from app.core.groq_client import get_groq_client
+from app.core.groq_client import groq_json_completion
 from app.analytics.competitors import (
     build_competitor_analysis_markdown,
     identify_market_competitors,
     product_info_from_analysis,
 )
-from app.analytics.utils import domain_from_url, normalize_url, parse_groq_json
+from app.analytics.utils import domain_from_url, normalize_url
 
 logger = logging.getLogger(__name__)
 
@@ -397,21 +397,13 @@ async def generate_company_documents(
         company=domain.split(".")[0].title(),
     ) + extra
 
-    client = get_groq_client()
-    completion = await client.chat.completions.create(
-        model=settings.groq_model,
+    result = await groq_json_completion(
+        agent_name="company_documents",
+        system="You return only valid JSON. Escape newlines in string values properly.",
+        user=prompt,
         max_tokens=5000,
-        messages=[
-            {
-                "role": "system",
-                "content": "You return only valid JSON. Escape newlines in string values properly.",
-            },
-            {"role": "user", "content": prompt},
-        ],
         temperature=0.35,
     )
-    text = completion.choices[0].message.content or "{}"
-    result = parse_groq_json(text)
 
     docs = result.get("documents") or {}
     for key in DOC_KEYS:
