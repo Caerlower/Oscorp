@@ -26,14 +26,10 @@ const WALLET_ERRORS: Partial<Record<WalletId, string>> = {
 
 function addressFromConnectResult(
   accounts: { address: string }[],
-  wallet: { activeAddress: string | null; addresses: string[] },
+  wallet: unknown,
 ): string | null {
-  return (
-    accounts[0]?.address ??
-    wallet.addresses[0] ??
-    wallet.activeAddress ??
-    null
-  );
+  const w = wallet as { activeAddress?: string | null; addresses?: string[] };
+  return accounts[0]?.address ?? w.addresses?.[0] ?? w.activeAddress ?? null;
 }
 
 function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promise<T> {

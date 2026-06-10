@@ -82,11 +82,11 @@ async function getClient(): Promise<Web3AuthNoModal> {
         redirectUrl,
         replaceUrlOnRedirect: true,
         whiteLabel: {
-          name: "Oscorp",
+          appName: "Oscorp",
           logoLight: `${origin}/oscorp-mark.svg`,
           logoDark: `${origin}/oscorp-mark.svg`,
           defaultLanguage: "en",
-          dark: false,
+          mode: "light",
         },
       },
     });
@@ -222,7 +222,7 @@ async function keyPairFromPrivateKeyHex(privateKeyHex: string): Promise<{
   }
 
   const naclModule = await import("tweetnacl");
-  const nacl = (naclModule as { default?: typeof naclModule }).default ?? naclModule;
+  const nacl = (naclModule as unknown as { default?: typeof naclModule }).default ?? naclModule;
   const keyPair = nacl.sign.keyPair.fromSeed(seed);
   return {
     address: algosdk.encodeAddress(keyPair.publicKey),
@@ -256,7 +256,7 @@ export async function deriveAgentWallet(mainPrivateKeyHex: string): Promise<Agen
 
   const agentSeed = new Uint8Array(signature).slice(0, 32);
   const naclModule = await import("tweetnacl");
-  const nacl = (naclModule as { default?: typeof naclModule }).default ?? naclModule;
+  const nacl = (naclModule as unknown as { default?: typeof naclModule }).default ?? naclModule;
   const keyPair = nacl.sign.keyPair.fromSeed(agentSeed);
 
   return {

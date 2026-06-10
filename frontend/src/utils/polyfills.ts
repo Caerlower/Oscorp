@@ -24,7 +24,7 @@ if (typeof globalThis !== "undefined") {
 }
 
 if (typeof window !== "undefined") {
-  const w = window as Window & { Buffer?: typeof Buffer; process?: typeof proc };
+  const w = window as unknown as Window & { Buffer?: typeof Buffer; process?: typeof proc };
   w.Buffer = Buffer;
   w.process = proc;
 }
