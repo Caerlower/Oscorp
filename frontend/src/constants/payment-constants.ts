@@ -1,4 +1,4 @@
-import paymentManifest from "../../../shared/payment-constants.json";
+import paymentManifest from "../../shared/payment-constants.json";
 
 const paidAgentKeys = paymentManifest.paidAgents as readonly string[];
 const agentPriceEntries = paymentManifest.agentPrices as Record<string, number>;

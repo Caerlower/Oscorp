@@ -36,7 +36,7 @@ export default defineConfig({
         buffer: "buffer/",
         crypto: "crypto-browserify",
         stream: "stream-browserify",
-        "@oscorp/x402-payer": path.resolve(rootDir, "../x402-payer/src/index.ts"),
+        "@oscorp/x402-payer": path.resolve(rootDir, "src/services/x402-payer.ts"),
       },
     },
     optimizeDeps: {
@@ -56,7 +56,13 @@ export default defineConfig({
       },
     },
     ssr: {
-      noExternal: ["@txnlab/use-wallet", "@txnlab/use-wallet-react"],
+      noExternal: [
+        "@txnlab/use-wallet",
+        "@txnlab/use-wallet-react",
+        "@x402-avm/avm",
+        "@x402-avm/core",
+        "@x402-avm/fetch",
+      ],
     },
   },
 });

@@ -1,7 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import algosdk from "algosdk";
 import { useWallet } from "@txnlab/use-wallet-react";
-import { createX402Fetch } from "@oscorp/x402-payer";
 import { API_URL } from "@/constants/config";
 import { ALGOD_TOKEN, ALGOD_URL } from "@/constants/payment-constants";
 import {
@@ -150,32 +149,50 @@ export function useX402Fetch(transactionSigner: TransactionSignerApi): X402Fetch
     [agentMode, agentWallet, isReady, paymentAddress, signTransactions, signWithApproval, usesEmbeddedWallet],
   );
 
-  const x402Fetch = useMemo(() => {
-    if (!paymentAddress) return null;
+  const [x402Fetch, setX402Fetch] = useState<X402FetchFn | null>(null);
 
-    const autoApprove = agentMode;
-    const signer = buildClientAvmSigner(paymentAddress, signTxnBytes);
-    const baseFetch = createX402Fetch(
-      signer,
-      {
-        onPaymentRequired: autoApprove
-          ? undefined
-          : async (amount, description) => requestPaymentApproval(amount, description),
-        algodUrl: ALGOD_URL,
-        algodToken: ALGOD_TOKEN,
-      },
-      x402AwareFetch,
-    );
+  useEffect(() => {
+    if (!paymentAddress) {
+      setX402Fetch(null);
+      return;
+    }
 
-    return async (path: string, init?: RequestInit & { agent?: PaidAgent }) => {
-      const { agent, ...requestInit } = init ?? {};
-      const headers = new Headers(requestInit.headers);
-      headers.set("Content-Type", "application/json");
-      if (user?.id) headers.set("X-User-Id", user.id);
-      if (agent) headers.set("X-Oscorp-Agent", agent);
+    let cancelled = false;
 
-      const url = path.startsWith("http") ? path : `${API_URL}${path}`;
-      return baseFetch(url, { ...requestInit, headers });
+    void (async () => {
+      const { createX402Fetch } = await import("@oscorp/x402-payer");
+      if (cancelled) return;
+
+      const autoApprove = agentMode;
+      const signer = buildClientAvmSigner(paymentAddress, signTxnBytes);
+      const baseFetch = createX402Fetch(
+        signer,
+        {
+          onPaymentRequired: autoApprove
+            ? undefined
+            : async (amount, description) => requestPaymentApproval(amount, description),
+          algodUrl: ALGOD_URL,
+          algodToken: ALGOD_TOKEN,
+        },
+        x402AwareFetch,
+      );
+
+      setX402Fetch(() => async (path: string, init?: RequestInit & { agent?: PaidAgent }) => {
+        const { agent, ...requestInit } = init ?? {};
+        const headers = new Headers(requestInit.headers);
+        headers.set("Content-Type", "application/json");
+        if (user?.id) headers.set("X-User-Id", user.id);
+        if (agent) headers.set("X-Oscorp-Agent", agent);
+
+        const url = path.startsWith("http") ? path : `${API_URL}${path}`;
+        return baseFetch(url, { ...requestInit, headers });
+      });
+    })().catch(() => {
+      if (!cancelled) setX402Fetch(null);
+    });
+
+    return () => {
+      cancelled = true;
     };
   }, [agentMode, paymentAddress, signTxnBytes, user?.id]);
 

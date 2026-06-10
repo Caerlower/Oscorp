@@ -23,7 +23,7 @@
     "resolveJsonModule": true,
     "paths": {
       "@/*": ["./src/*"],
-      "@oscorp/x402-payer": ["../x402-payer/src/index.ts"]
+      "@oscorp/x402-payer": ["./src/services/x402-payer.ts"]
     }
   }
 }
