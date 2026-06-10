@@ -8,6 +8,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { pickPreferredAnalysis } from "@/types/analysis-types";
 import {
   applyWorkspaceToLocal,
   collectLocalWorkspace,
@@ -90,8 +91,9 @@ export function WorkspaceProvider({
       if (cancelled) return;
 
       if (remote && hasRemoteWorkspace(remote)) {
+        const preferredAnalysis = pickPreferredAnalysis(local.analysis, remote.analysis);
         applyWorkspaceToLocal(site, {
-          analysis: remote.analysis,
+          analysis: preferredAnalysis ?? remote.analysis,
           company_profile: remote.company_profile as WorkspacePatch["company_profile"],
           edited_documents: remote.edited_documents,
           chat_active_messages: remote.chat_active_messages,

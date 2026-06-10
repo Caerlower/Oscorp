@@ -84,6 +84,8 @@ export type FullAnalysisResult = {
     provider: string;
     status: "complete" | "rate_limited";
     message?: string | null;
+    /** ISO timestamp — earliest time to retry Groq (from API error). */
+    retryAfterAt?: string | null;
   };
 };
 
@@ -135,6 +137,78 @@ export function isStaleCompetitors(data: FullAnalysisResult): boolean {
   const comps = data.competitors ?? [];
   if (comps.length === 0) return false;
   return comps.every((c) => typeof c.similarityScore !== "number");
+}
+
+/** Minimum gap between Groq retry attempts (per site, per tab session). */
+export const GROQ_RETRY_MIN_MS = 2 * 60 * 1000;
+
+const GROQ_RETRY_PREFIX = "oscorp_groq_retry:";
+
+export function isGroqRateLimited(data: FullAnalysisResult): boolean {
+  return data.aiAnalysis?.status === "rate_limited";
+}
+
+export function isGroqAnalysisComplete(data: FullAnalysisResult): boolean {
+  return data.aiAnalysis?.status === "complete";
+}
+
+function groqRetryStorageKey(site: string): string {
+  return `${GROQ_RETRY_PREFIX}${site.replace(/^https?:\/\//, "").replace(/\/$/, "").toLowerCase()}`;
+}
+
+export function readLastGroqRetryAt(site: string): number {
+  if (typeof window === "undefined") return 0;
+  const raw = sessionStorage.getItem(groqRetryStorageKey(site));
+  const parsed = raw ? Number(raw) : 0;
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+export function markGroqRetryAttempt(site: string): void {
+  if (typeof window === "undefined") return;
+  sessionStorage.setItem(groqRetryStorageKey(site), String(Date.now()));
+}
+
+export function clearGroqRetryAttempt(site: string): void {
+  if (typeof window === "undefined") return;
+  sessionStorage.removeItem(groqRetryStorageKey(site));
+}
+
+/** True when we should hit the API again to see if Groq quota is back. */
+export function shouldRetryGroqNow(site: string): boolean {
+  const last = readLastGroqRetryAt(site);
+  if (!last) return true;
+  return Date.now() - last >= GROQ_RETRY_MIN_MS;
+}
+
+/** Respect Groq's own retry-after timestamp when present on cached analysis. */
+export function shouldRetryGroqAnalysis(data: FullAnalysisResult, site: string): boolean {
+  const retryAt = data.aiAnalysis?.retryAfterAt;
+  if (retryAt) {
+    const at = Date.parse(retryAt);
+    if (Number.isFinite(at) && Date.now() < at) return false;
+  }
+  return shouldRetryGroqNow(site);
+}
+
+/** Prefer complete AI analysis over rate-limited snapshots when merging workspaces. */
+export function pickPreferredAnalysis(
+  local: FullAnalysisResult | null | undefined,
+  remote: FullAnalysisResult | null | undefined,
+): FullAnalysisResult | null {
+  if (!local) return remote ?? null;
+  if (!remote) return local;
+
+  const localLimited = isGroqRateLimited(local);
+  const remoteLimited = isGroqRateLimited(remote);
+  if (!localLimited && remoteLimited) return local;
+  if (localLimited && !remoteLimited) return remote;
+
+  const localAt = Date.parse(local.analyzedAt ?? "");
+  const remoteAt = Date.parse(remote.analyzedAt ?? "");
+  if (Number.isFinite(localAt) && Number.isFinite(remoteAt)) {
+    return localAt >= remoteAt ? local : remote;
+  }
+  return localLimited ? remote : local;
 }
 
 /** v8 schema: market-research competitors with similarity scores. */

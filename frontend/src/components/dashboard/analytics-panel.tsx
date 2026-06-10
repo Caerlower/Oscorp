@@ -108,7 +108,7 @@ export function AnalyticsPanel() {
   }, []);
 
   const { isOscorp } = useTheme();
-  const { data: analysis, status: analysisStatus, error: analysisError } = useAnalysis();
+  const { data: analysis, status: analysisStatus, refreshing, error: analysisError } = useAnalysis();
   const loading = analysisStatus === "loading" && !analysis;
   const groqLimited = analysis?.aiAnalysis?.status === "rate_limited";
 
@@ -135,9 +135,16 @@ export function AnalyticsPanel() {
       }
     >
       {groqLimited && (
-        <p className="mc-alert mc-alert-warning mb-4 text-[13px]">
-          {analysis?.aiAnalysis?.message ?? analysisError ?? "Groq rate limit — SEO and technical data shown; AI company insights pending."}
-        </p>
+        <div className="mc-alert mc-alert-warning mb-4 text-[13px]">
+          <p>
+            {analysis?.aiAnalysis?.message ??
+              analysisError ??
+              "Groq daily limit — SEO and technical tabs below still work; AI documents refresh automatically when quota resets."}
+          </p>
+          {refreshing ? (
+            <p className="mt-1.5 text-xs text-muted-foreground">Checking Groq quota and refreshing analysis…</p>
+          ) : null}
+        </div>
       )}
 
       <div className="space-y-6">

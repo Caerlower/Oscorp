@@ -1,5 +1,6 @@
 import type { FullAnalysisResult } from "@/types/analysis-types";
 import {
+  pickPreferredAnalysis,
   readCachedAnalysis,
   writeCachedAnalysis,
 } from "@/types/analysis-types";
@@ -107,7 +108,9 @@ export function hasRemoteWorkspace(record: WorkspaceRecord | null | undefined): 
 
 export function applyWorkspaceToLocal(site: string, record: WorkspacePatch): void {
   if (record.analysis && hasAnalysis(record.analysis)) {
-    writeCachedAnalysis(site, record.analysis);
+    const local = readCachedAnalysis(site);
+    const preferred = pickPreferredAnalysis(local, record.analysis) ?? record.analysis;
+    writeCachedAnalysis(site, preferred);
   }
   if (record.company_profile && typeof record.company_profile === "object") {
     writeProfileToLocal(site, record.company_profile as CompanyProfile);

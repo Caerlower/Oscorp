@@ -13,6 +13,7 @@ type AnalysisContextValue = {
   site: string;
   data: FullAnalysisResult | null;
   status: AnalysisStatus;
+  refreshing: boolean;
   error: string | null;
   refresh: () => void;
   updateDocument: (key: DocumentKey, markdown: string) => void;
@@ -22,7 +23,7 @@ const AnalysisContext = createContext<AnalysisContextValue | null>(null);
 
 export function AnalysisProvider({ site, children }: { site: string; children: ReactNode }) {
   const { schedulePersist } = useWorkspace();
-  const { data, status, error, refresh, patchData } = useFullAnalysis(site);
+  const { data, status, refreshing, error, refresh, patchData } = useFullAnalysis(site);
 
   const updateDocument = useCallback(
     (key: DocumentKey, markdown: string) => {
@@ -44,7 +45,7 @@ export function AnalysisProvider({ site, children }: { site: string; children: R
   );
 
   return (
-    <AnalysisContext.Provider value={{ site, data, status, error, refresh, updateDocument }}>
+    <AnalysisContext.Provider value={{ site, data, status, refreshing, error, refresh, updateDocument }}>
       {children}
     </AnalysisContext.Provider>
   );
