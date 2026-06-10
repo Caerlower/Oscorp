@@ -178,6 +178,3 @@ cython_debug/
 # NPM (if re-added)
 node_modules/
 
-# Local dev stack logs (scripts/dev-up.sh)
-.dev-logs/
-

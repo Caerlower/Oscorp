@@ -105,7 +105,7 @@ Set these in `backend/.env`:
 | `SUPABASE_URL` | Supabase → Project Settings → API → Project URL |
 | `SUPABASE_SERVICE_KEY` | Same page → `service_role` secret (starts with `eyJ`) |
 
-`frontend/.env` defaults work locally. Add `VITE_WEB3AUTH_CLIENT_ID` only if you use Web3Auth ([developer.metamask.io](https://developer.metamask.io)) — or run `./scripts/setup-web3auth.sh`.
+`frontend/.env` defaults work locally. Add `VITE_WEB3AUTH_CLIENT_ID` to `frontend/.env` only if you use Web3Auth ([developer.metamask.io](https://developer.metamask.io)).
 
 ### 2. Database
 
@@ -139,8 +139,6 @@ cd frontend && pnpm dev
 Open **http://localhost:8080**
 
 Check the API: http://127.0.0.1:8000/health
-
-Helper scripts: `./scripts/dev-stack.sh` prints these commands; `./scripts/dev-up.sh` starts the backend in the background.
 
 ---
 
