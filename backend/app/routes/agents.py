@@ -2,23 +2,23 @@ from __future__ import annotations
 
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 
 from app.agents.articles import ArticlesRequest, ArticlesResponse, run_articles_agent
 from app.core.x402_middleware import agent_payment_dep
 from app.agents.hackernews import HackerNewsRequest, HackerNewsResponse, run_hackernews_agent
 from app.agents.linkedin import LinkedInRequest, LinkedInResponse, run_linkedin_agent
-from app.agents.reddit import RedditRequest, RedditResponse, run_reddit_agent
+from app.agents.reddit import RedditRequest, RedditResponse
 from app.agents.twitter import TwitterRequest, TwitterResponse, run_twitter_agent
 from app.payments.agent_deliverables import persist_paid_agent_result
 
 router = APIRouter(prefix="/api/agents", tags=["agents"])
 
-PAID_AGENTS = frozenset({"reddit", "linkedin", "articles", "hackernews"})
+PAID_AGENTS = frozenset({"linkedin", "articles", "hackernews"})
 
 
-def _agent_response(result: Any, ok_model: type) -> Any:
+def _agent_response(result: Any, _ok_model: type) -> Any:
     if isinstance(result, dict) and "error" in result:
         return JSONResponse(status_code=502, content=result)
     return result
@@ -40,12 +40,11 @@ async def _run_paid_agent(
 
 
 @router.post("/reddit", response_model=RedditResponse)
-async def api_reddit(
-    body: RedditRequest,
-    request: Request,
-    _payment: Annotated[dict, Depends(agent_payment_dep("reddit"))],
-) -> Any:
-    return await _run_paid_agent("reddit", request, run_reddit_agent, body, RedditResponse)
+async def api_reddit(_body: RedditRequest) -> Any:
+    raise HTTPException(
+        status_code=503,
+        detail="Reddit agent is not available yet. Community scanning will ship in a future release.",
+    )
 
 
 @router.post("/twitter", response_model=TwitterResponse)

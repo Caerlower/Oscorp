@@ -120,13 +120,10 @@ def load_store(store: MemoryStore) -> int:
     users = [_user_from_dict(u) for u in raw.get("users", [])]
     store.users_by_wallet.clear()
     store.users_by_id.clear()
-    store.users_by_chat.clear()
     store.drafts_by_user.clear()
     for user in users:
         store.users_by_wallet[user.wallet_address] = user
         store.users_by_id[user.id] = user
-        if user.telegram_chat_id is not None:
-            store.users_by_chat[user.telegram_chat_id] = user
         store.drafts_by_user[user.id] = []
     for uid, draft_list in (raw.get("drafts") or {}).items():
         if uid in store.drafts_by_user:

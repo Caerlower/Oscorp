@@ -9,11 +9,9 @@ from pydantic import BaseModel
 from app.agents.twitter.schemas import TwitterRequest
 from app.payments.agent_deliverables import (
     PAID_AGENT_DAILY_LIMIT,
-    list_pending_twitter_deliverables,
     mark_deliverable_posted,
     resolve_paid_agent_access,
     restore_paid_agent_deliverable,
-    save_paid_agent_deliverable,
     sync_twitter_deliverables,
 )
 from app.db.supabase_client import SupabaseError, supabase
@@ -28,17 +26,6 @@ class TwitterSyncResponse(BaseModel):
     allPostedToday: bool = False
 
 
-@router.get("/users/{user_id}/twitter", response_model=TwitterSyncResponse)
-async def get_twitter_deliverables(user_id: str) -> Any:
-    if not supabase.enabled:
-        raise HTTPException(status_code=503, detail="Supabase not configured")
-    try:
-        tweets = await list_pending_twitter_deliverables(user_id)
-        return {"tweets": tweets, "allPostedToday": len(tweets) == 0}
-    except SupabaseError as exc:
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
-
-
 @router.post("/users/{user_id}/twitter/sync", response_model=TwitterSyncResponse)
 async def sync_twitter_feed(user_id: str, body: TwitterRequest) -> Any:
     if not supabase.enabled:
@@ -50,20 +37,6 @@ async def sync_twitter_feed(user_id: str, body: TwitterRequest) -> Any:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
     except RuntimeError as exc:
         logger.warning("Twitter sync failed for %s: %s", user_id, exc)
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
-
-
-@router.get("/users/{user_id}/agents/{agent}/paid-today")
-async def agent_paid_today(user_id: str, agent: str) -> Any:
-    if agent not in PAID_AGENT_DAILY_LIMIT:
-        raise HTTPException(status_code=404, detail="Unknown agent")
-    if not supabase.enabled:
-        raise HTTPException(status_code=503, detail="Supabase not configured")
-    try:
-        access = await resolve_paid_agent_access(user_id, agent)
-        needs_load = access["status"] == "needs_load"
-        return {"agent": agent, "paidToday": needs_load, "status": access["status"]}
-    except SupabaseError as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
 
 
@@ -103,20 +76,6 @@ async def restore_paid_agent(user_id: str, agent: str, body: dict[str, Any]) -> 
         raise HTTPException(status_code=502, detail=msg) from exc
     except RuntimeError as exc:
         logger.warning("Restore failed for %s/%s: %s", user_id, agent, exc)
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
-
-
-@router.post("/users/{user_id}/agents/{agent}")
-async def store_paid_agent_deliverable(user_id: str, agent: str, body: dict[str, Any]) -> Any:
-    if agent not in PAID_AGENT_DAILY_LIMIT:
-        raise HTTPException(status_code=404, detail="Unknown agent")
-    if not supabase.enabled:
-        raise HTTPException(status_code=503, detail="Supabase not configured")
-    try:
-        payload = body.get("data", body)
-        data = await save_paid_agent_deliverable(user_id, agent, payload)
-        return {"agent": agent, "unlocked": True, "data": data}
-    except SupabaseError as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
 
 

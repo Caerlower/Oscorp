@@ -31,12 +31,6 @@ class ConnectWalletResponse(BaseModel):
     min_fund_micro_usdc: int
 
 
-class SignPolicyRequest(BaseModel):
-    user_id: str
-    policy: dict
-    signature: str = Field(..., min_length=8)
-
-
 class AgentStatusResponse(BaseModel):
     user_id: str
     wallet_address: str
@@ -107,11 +101,3 @@ async def get_session(user_id: str) -> AgentStatusResponse:
         min_fund_micro_usdc=min_fund,
     )
 
-
-@router.post("/policy", response_model=AgentStatusResponse)
-async def sign_policy(req: SignPolicyRequest) -> AgentStatusResponse:
-    user = store.get_user(req.user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    store.save_policy(req.user_id, req.policy, req.signature)
-    return await get_session(req.user_id)

@@ -11,7 +11,6 @@ from starlette.responses import Response
 from app.routes import agents as agents_routes
 from app.routes import analysis as analysis_routes
 from app.routes import chat as chat_routes
-from app.routes import company as company_routes
 from app.routes import session as session_routes
 from app.routes import deliverables as deliverables_routes
 from app.routes import users as users_routes
@@ -42,7 +41,6 @@ app.include_router(session_routes.router)
 app.include_router(agents_routes.router)
 app.include_router(analysis_routes.router)
 app.include_router(chat_routes.router)
-app.include_router(company_routes.router)
 app.include_router(users_routes.router)
 app.include_router(deliverables_routes.router)
 app.include_router(workspace_routes.router)
