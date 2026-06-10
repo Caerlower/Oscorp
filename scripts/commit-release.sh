@@ -143,7 +143,6 @@ git add \
   frontend/src/services/x402-api.ts \
   frontend/src/hooks/useX402Fetch.ts \
   frontend/src/hooks/usePayment.ts \
-  frontend/src/hooks/usePaymentUser.ts \
   frontend/src/context/PaymentContext.tsx \
   frontend/src/context/PaymentUserContext.tsx \
   frontend/src/context/PaidAgentsContext.tsx \

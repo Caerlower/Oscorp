@@ -16,9 +16,9 @@ export const agents = [
   { name: "Brand", icon: PenLine, color: "#7C3AED", desc: "Brand voice and messaging frameworks you can edit and reuse." },
   { name: "Strategy", icon: Newspaper, color: "#F59E0B", desc: "Marketing strategy and article outlines grounded in crawl data." },
   { name: "Technical", icon: Code2, color: "#059669", desc: "Server, DOM, and performance signals in one technical view." },
-  { name: "Social", icon: Twitter, color: "#171717", desc: "Preview posts for X, LinkedIn, Reddit, and more (coming soon)." },
-  { name: "Reddit", icon: MessageCircle, color: "#FF4500", desc: "Community opportunities surfaced for your niche (coming soon)." },
-  { name: "LinkedIn", icon: Linkedin, color: "#0077B5", desc: "Professional post ideas aligned with your brand voice (coming soon)." },
+  { name: "Social", icon: Twitter, color: "#171717", desc: "X post drafts and scheduling from your brand context." },
+  { name: "Reddit", icon: MessageCircle, color: "#FF4500", desc: "Community opportunity scanning (coming soon)." },
+  { name: "LinkedIn", icon: Linkedin, color: "#0077B5", desc: "Professional post drafts aligned with your brand voice." },
 ];
 
 export const testimonials = [

@@ -66,7 +66,7 @@ sequenceDiagram
   participant API as Backend
   participant Fac as Facilitator
 
-  UI->>API: POST /api/agents/reddit
+  UI->>API: POST /api/agents/linkedin
   API-->>UI: 402 PAYMENT-REQUIRED
   UI->>UI: Confirm + sign USDC txn
   UI->>API: Retry with PAYMENT-SIGNATURE
@@ -149,9 +149,9 @@ Helper scripts: `./scripts/dev-stack.sh` prints these commands; `./scripts/dev-u
 Without a payment header, paid routes return 402:
 
 ```bash
-curl -i -X POST http://127.0.0.1:8000/api/agents/reddit \
+curl -i -X POST http://127.0.0.1:8000/api/agents/linkedin \
   -H "Content-Type: application/json" \
-  -d '{"productInfo":"test"}'
+  -d '{"productInfo":"test","postType":"lesson_learned"}'
 ```
 
 You should see `PAYMENT-REQUIRED` and `x402Version: 2` in the response.

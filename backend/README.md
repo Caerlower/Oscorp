@@ -22,7 +22,6 @@ app/
   core/x402_middleware.py  # 402 gate, facilitator verify/settle
   core/payment_constants.py  # Loads shared/payment-constants.json
   routes/agents.py         # Paid agent endpoints
-  routes/company.py        # Brand voice, competitors (x402)
   analytics/               # Scrape, Lighthouse, Groq docs
   chat/                    # AI CMO chat
   db/                      # Supabase client
@@ -32,12 +31,11 @@ app/
 
 | Route | Agent |
 |-------|-------|
-| `POST /api/agents/reddit` | $0.05 USDC |
-| `POST /api/agents/linkedin` | $0.02 |
-| `POST /api/agents/articles` | $0.10 |
-| `POST /api/agents/hackernews` | $0.02 |
-| `POST /api/company/brand-voice` | $0.05 |
-| `POST /api/company/competitors` | $0.05 |
+| `POST /api/agents/linkedin` | $0.02 USDC |
+| `POST /api/agents/articles` | $0.10 USDC |
+| `POST /api/agents/hackernews` | $0.02 USDC |
+
+Twitter drafts are free via `POST /api/deliverables/users/{id}/twitter/sync`. Reddit agent returns 503 until shipped.
 
 Prices and treasury: `../shared/payment-constants.json`
 
