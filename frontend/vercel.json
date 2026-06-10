@@ -1,4 +1,5 @@
 {
+  "framework": "tanstack-start",
   "buildCommand": "pnpm build",
   "installCommand": "pnpm install"
 }

@@ -6,8 +6,18 @@ import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
 
-// Vercel builds use Nitro's `vercel` preset (no Cloudflare). Local builds stay Vite-only.
-const nitro = process.env.VERCEL ? { preset: "vercel" as const } : false;
+// Vercel builds need Nitro's default output layout (.vercel/output/functions/__server.func).
+// @lovable.dev/vite-tanstack-config otherwise forces dist/server, which breaks Vercel routing.
+const nitro = process.env.VERCEL
+  ? {
+      preset: "vercel" as const,
+      output: {
+        dir: ".vercel/output",
+        serverDir: ".vercel/output/functions/__server.func",
+        publicDir: ".vercel/output/static",
+      },
+    }
+  : false;
 
 // Custom SSR entry wraps TanStack Start with branded error pages.
 export default defineConfig({
