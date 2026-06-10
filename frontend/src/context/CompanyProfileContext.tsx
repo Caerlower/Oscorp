@@ -10,11 +10,11 @@ import {
 import type { FullAnalysisResult } from "@/types/analysis-types";
 import {
   companyProfileForApi,
-  companyProfileStorageKey,
   competitorHost,
   displayTags,
   LEGACY_DEFAULT_COMPETITORS,
   normalizeTwitterHandle,
+  isPlaceholderDescription,
   readCompanyProfile,
   resolveTwitterHandle,
   setLatestCompanyProfileForAnalysis,
@@ -55,8 +55,6 @@ export function CompanyProfileProvider({
 
   useEffect(() => {
     if (!analysis?.company) return;
-    const hasStored =
-      typeof window !== "undefined" && localStorage.getItem(companyProfileStorageKey(site));
     setProfile((prev) => {
       const next = { ...prev };
       let changed = false;
@@ -75,11 +73,14 @@ export function CompanyProfileProvider({
         next.competitors.length > 0 &&
         next.competitors.every((d) => LEGACY_DEFAULT_COMPETITORS.has(competitorHost(d)));
 
-      if (!hasStored) {
-        if (analysis.company?.description?.trim() && !next.description.trim()) {
-          next.description = analysis.company.description.trim();
-          changed = true;
-        }
+      const analysisDescription = analysis.company?.description?.trim() ?? "";
+      const descriptionIsPlaceholder = isPlaceholderDescription(next.description, company, site);
+      if (analysisDescription && (descriptionIsPlaceholder || !next.description.trim())) {
+        next.description = analysisDescription;
+        changed = true;
+      } else if (descriptionIsPlaceholder && next.description.trim()) {
+        next.description = "";
+        changed = true;
       }
 
       if (scoredCompetitors.length > 0) {

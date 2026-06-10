@@ -1,4 +1,5 @@
 import type { FullAnalysisResult } from "@/types/analysis-types";
+import { normalizeSiteUrl, siteLabel } from "@/utils/navigation";
 
 export type CompanyProfile = {
   description: string;
@@ -40,15 +41,101 @@ function profileKey(site: string): string {
   return `${PROFILE_KEY_PREFIX}${site.replace(/^https?:\/\//, "").replace(/\/$/, "").toLowerCase()}`;
 }
 
-function defaultProfile(company: string, site: string): CompanyProfile {
+function defaultProfile(_company: string, _site: string): CompanyProfile {
   return {
-    description: `${company} growth profile on ${site.replace(/^https?:\/\//, "")}.`,
+    description: "",
     tags: [],
     twitterHandle: "",
     linkedInUrl: "",
     competitors: [...DEFAULT_COMPETITORS],
     teamSize: "",
   };
+}
+
+/** Auto-generated onboarding placeholder — not a real summary. */
+export function isPlaceholderDescription(
+  description: string,
+  company?: string,
+  site?: string,
+): boolean {
+  const text = description.trim();
+  if (!text) return true;
+  if (/growth profile on/i.test(text)) return true;
+  if (/^www(\s|\.)/i.test(text)) return true;
+
+  const host = normalizeSiteUrl(site);
+  const label = (company ?? "").trim().toLowerCase();
+  if (label === "www" || label === "company") return true;
+
+  if (host) {
+    const variants = [
+      `${label} growth profile on ${host}.`,
+      `${label} growth profile on www.${host}.`,
+      `${label} growth profile on https://${host}.`,
+    ].map((s) => s.toLowerCase());
+    if (variants.includes(text.toLowerCase())) return true;
+  }
+  return false;
+}
+
+function firstMarkdownParagraph(markdown: string): string {
+  return markdown
+    .replace(/^#+\s.*$/gm, "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)[0] ?? "";
+}
+
+/** Best available company summary for display (profile → analysis → crawl meta). */
+export function resolveCompanySummary(
+  profile: CompanyProfile,
+  analysis: FullAnalysisResult | null | undefined,
+  company: string,
+  site: string,
+): string {
+  const manual = profile.description.trim();
+  if (manual && !isPlaceholderDescription(manual, company, site)) {
+    return manual;
+  }
+
+  const fromAnalysis = analysis?.company?.description?.trim();
+  if (fromAnalysis && fromAnalysis.length >= 24) {
+    return fromAnalysis;
+  }
+
+  const productBlurb = analysis?.documents?.productInfo
+    ? firstMarkdownParagraph(analysis.documents.productInfo)
+    : "";
+  if (productBlurb.length >= 40) {
+    return productBlurb;
+  }
+
+  const meta = analysis?.seo?.health?.metaDescription;
+  if (meta?.present && meta.value?.trim().length >= 24) {
+    return meta.value.trim();
+  }
+
+  const ogDescription = analysis?.socialTags?.ogDescription?.trim();
+  if (ogDescription && ogDescription.length >= 24) {
+    return ogDescription;
+  }
+
+  if (fromAnalysis) return fromAnalysis;
+
+  return "";
+}
+
+export function resolveCompanyDisplayName(
+  analysis: FullAnalysisResult | null | undefined,
+  company: string,
+  site: string,
+): string {
+  const raw = analysis?.company?.name?.trim();
+  if (raw && raw.toLowerCase() !== "www" && !/^www\./i.test(raw)) {
+    return raw;
+  }
+  const label = siteLabel(site);
+  return label !== "Company" ? label : company;
 }
 
 function migrateLegacy(site: string, base: CompanyProfile): CompanyProfile {
@@ -76,8 +163,11 @@ export function readCompanyProfile(site: string, company: string): CompanyProfil
     const raw = localStorage.getItem(profileKey(site));
     if (raw) {
       const parsed = JSON.parse(raw) as Partial<CompanyProfile>;
+      const storedDesc = parsed.description?.trim() ?? "";
+      const description =
+        storedDesc && !isPlaceholderDescription(storedDesc, company, site) ? storedDesc : "";
       return {
-        description: parsed.description?.trim() || fallback.description,
+        description,
         tags: Array.isArray(parsed.tags) ? parsed.tags.filter(Boolean).map(String) : [],
         twitterHandle: parsed.twitterHandle?.trim() || "",
         linkedInUrl: parsed.linkedInUrl?.trim() || "",

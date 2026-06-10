@@ -21,6 +21,8 @@ import {
   competitorHost,
   normalizeLinkedInUrl,
   normalizeTwitterHandle,
+  resolveCompanyDisplayName,
+  resolveCompanySummary,
   type CompanyProfile,
 } from "@/utils/company-profile";
 import {
@@ -204,15 +206,17 @@ export function CompanyPanel({
   onClose?: () => void;
 }) {
   const { theme, isOscorp } = useTheme();
-  const { data: analysis, status: analysisStatus } = useAnalysis();
+  const { data: analysis, status: analysisStatus, refreshing } = useAnalysis();
   const { profile, displayTags, twitterHandle, saveProfile } = useCompanyProfile();
   const [editing, setEditing] = useState(false);
   const [editingCompetitors, setEditingCompetitors] = useState(false);
   const [focusSection, setFocusSection] = useState<"brand" | "docs" | "comps" | null>(null);
   const [competitorsEditList, setCompetitorsEditList] = useState<string[]>(profile.competitors);
 
-  const displayCompany = analysis?.company?.name ?? company;
+  const displayCompany = resolveCompanyDisplayName(analysis, company, site);
+  const aiSummary = resolveCompanySummary(profile, analysis, company, site);
   const loading = analysisStatus === "loading" && !analysis;
+  const summaryLoading = (loading || refreshing) && !aiSummary;
   const twitter = twitterHandle;
   const linkedIn = normalizeLinkedInUrl(profile.linkedInUrl);
 
@@ -367,13 +371,23 @@ export function CompanyPanel({
             {embedded ? (
               <div className="mc-company-section space-y-3">
                 <div className="mc-section-label">AI Summary</div>
-                <blockquote className="mc-ai-summary-quote border-l-[3px] border-primary bg-primary/5 py-3 pl-4 pr-4 text-[13px] italic leading-relaxed text-muted-foreground rounded-r-lg">
-                  {profile.description}
-                </blockquote>
+                {summaryLoading ? (
+                  <p className="text-[13px] text-muted-foreground">Generating summary from your site…</p>
+                ) : aiSummary ? (
+                  <blockquote className="mc-ai-summary-quote border-l-[3px] border-primary bg-primary/5 py-3 pl-4 pr-4 text-[13px] leading-relaxed text-muted-foreground rounded-r-lg">
+                    {aiSummary}
+                  </blockquote>
+                ) : (
+                  <p className="text-[13px] italic text-muted-foreground">
+                    {analysis?.aiAnalysis?.status === "rate_limited"
+                      ? "AI summary will appear when Groq quota resets and analysis completes."
+                      : "Run site analysis or edit your company profile to add a summary."}
+                  </p>
+                )}
               </div>
-            ) : (
-              <p className="text-sm leading-relaxed text-muted-foreground">{profile.description}</p>
-            )}
+            ) : aiSummary ? (
+              <p className="text-sm leading-relaxed text-muted-foreground">{aiSummary}</p>
+            ) : null}
           </>
         )}
 
@@ -403,9 +417,9 @@ export function CompanyPanel({
           sectionLabel={embedded ? "Competitor Intel" : competitorsSectionLabel(theme)}
           hint={
             analysis?.competitorsStatus === "rate_limited" || analysis?.aiAnalysis?.status === "rate_limited"
-              ? "Competitor research is waiting on Groq API quota. Refresh analysis after quota resets."
+              ? "Competitor research is waiting on Groq API quota — updates automatically when quota resets."
               : profile.competitors.length === 0 && analysisStatus === "live"
-                ? "No market competitors yet — refresh analysis to populate."
+                ? "No market competitors yet — analysis will update automatically when Groq quota is available."
                 : undefined
           }
           isOscorp={isOscorp}

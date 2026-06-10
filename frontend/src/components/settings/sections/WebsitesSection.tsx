@@ -2,12 +2,12 @@ import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Check, Info, Plus, RotateCw } from "lucide-react";
 import { useSession } from "@/context/SessionContext";
-import { usePaymentUser } from "@/hooks/usePaymentUser";
+import { usePaymentUser } from "@/context/PaymentUserContext";
 import { isValidSite, readStoredSite, siteLabel, storeSite, normalizeSiteUrl } from "@/utils/navigation";
 
 export function WebsitesSection() {
   const { walletAddress } = useSession();
-  const { user } = usePaymentUser();
+  const { user, updateUser } = usePaymentUser();
   const site =
     (user?.product_site && isValidSite(user.product_site)
       ? normalizeSiteUrl(user.product_site)
@@ -15,10 +15,15 @@ export function WebsitesSection() {
   const company = siteLabel(site ?? undefined);
   const [changeUrl, setChangeUrl] = useState("");
 
-  const applySite = (raw: string) => {
+  const applySite = async (raw: string) => {
     const next = normalizeSiteUrl(raw);
     if (!isValidSite(next) || !walletAddress) return;
     storeSite(next, walletAddress);
+    try {
+      await updateUser({ product_site: next });
+    } catch {
+      /* local session still updated; Supabase sync on next successful save */
+    }
     window.location.reload();
   };
 
@@ -36,7 +41,7 @@ export function WebsitesSection() {
         className="mc-add-website-btn flex h-12 w-full items-center justify-center gap-2 rounded-[10px] border border-dashed border-border text-sm font-medium transition hover:border-primary hover:text-primary"
         onClick={() => {
           const url = prompt("Enter your product URL (e.g. algointent.xyz)");
-          if (url) applySite(url);
+          if (url) void applySite(url);
         }}
       >
         <Plus className="h-4 w-4" />
@@ -98,7 +103,7 @@ export function WebsitesSection() {
             <button
               type="button"
               className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-2 text-muted-foreground transition hover:bg-muted hover:text-primary"
-              onClick={() => changeUrl.trim() && applySite(changeUrl)}
+              onClick={() => changeUrl.trim() && void applySite(changeUrl)}
               title="Apply URL"
             >
               <RotateCw className="h-4 w-4" />

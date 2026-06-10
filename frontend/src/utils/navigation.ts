@@ -48,7 +48,7 @@ export function navigateAfterAuth(
   redirect?: string,
   replace = false,
 ) {
-  const fallback = sessionHomePath(session);
+  const fallback = sessionHomePath();
   const to = redirect && redirect !== "/auth" ? normalizeRedirectPath(redirect, fallback) : fallback;
   navigate({ to, replace });
 }
@@ -57,7 +57,10 @@ export function navigateAfterAuth(
 export function normalizeSiteUrl(raw?: string | null): string {
   const value = (raw ?? "").trim();
   if (!value) return "";
-  return value.replace(/^https?:\/\//, "").replace(/\/$/, "");
+  return value
+    .replace(/^https?:\/\//i, "")
+    .replace(/\/$/, "")
+    .replace(/^www\./i, "");
 }
 
 export function isValidSite(site?: string | null): boolean {
@@ -69,8 +72,10 @@ export function isValidSite(site?: string | null): boolean {
 
 export function siteLabel(site: string | null | undefined): string {
   if (!site || !isValidSite(site)) return "Company";
-  const name = site.split(".")[0] ?? "";
-  return name ? name.replace(/^./, (c) => c.toUpperCase()) : "Company";
+  const host = normalizeSiteUrl(site);
+  const label = host.split(".")[0] ?? "";
+  if (!label) return "Company";
+  return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
 /** Site saved for this wallet only (not shared across accounts). */
