@@ -23,14 +23,14 @@ import {
   PaymentPreflightError,
 } from "@/utils/algorand-wallet";
 import { formatUsdc, type PaidAgent } from "@/constants/payment-constants";
-import { usePaymentUser } from "@/hooks/usePaymentUser";
+import { usePaymentUser } from "@/context/PaymentUserContext";
 import type { FundPrompt } from "@/components/payment/FundWalletModal";
 import { useX402Fetch, type X402FetchFn } from "@/hooks/useX402Fetch";
 
 type PaymentSideEffects = {
   markAgentPaid?: (agent: PaidAgent) => void;
   unmarkAgentPaid?: (agent: PaidAgent) => void;
-  refreshPaidAgents?: () => Promise<void>;
+  refreshPaidAgents?: (options?: { silent?: boolean }) => Promise<void>;
 };
 
 export function usePayment(signer: TransactionSignerApi, sideEffects: PaymentSideEffects = {}) {

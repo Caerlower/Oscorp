@@ -15,7 +15,6 @@ import {
   Info,
   Linkedin,
   Lock,
-  MessageCircle,
   Minus,
   Newspaper,
   Paperclip,
@@ -418,76 +417,6 @@ function SuggestedTweet({
   );
 }
 
-function SuggestedReddit({
-  title,
-  subreddit,
-  upvotes,
-  comments,
-  score,
-  url,
-  suggestedReply,
-  reason,
-}: {
-  title: string;
-  subreddit: string;
-  upvotes: number;
-  comments: number;
-  score: number;
-  url: string;
-  suggestedReply: string;
-  reason: string;
-}) {
-  const { openDetail } = useDashboardDetail();
-  const sub = subreddit.startsWith("r/") ? subreddit : `r/${subreddit}`;
-
-  return (
-    <div className="rounded-lg border border-border bg-background p-3">
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <span className="mc-section-label flex items-center gap-1.5">
-          <MessageCircle className="h-3 w-3" />
-          {sub}
-        </span>
-        <span className="rounded-lg border border-primary/30 bg-primary/10 px-2 py-0.5 font-mono text-[10px] font-semibold text-primary">
-          {score}/10
-        </span>
-      </div>
-      <p className="text-sm font-medium leading-snug text-foreground">{title}</p>
-      <p className="mt-1 text-[11px] text-muted-foreground">
-        {upvotes} upvotes · {comments} comments
-      </p>
-      {reason ? (
-        <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">{reason}</p>
-      ) : null}
-      <div className="mt-3 flex justify-end gap-2">
-        <a
-          href={url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mc-btn-secondary inline-flex h-9 items-center px-3 text-xs font-medium"
-          onClick={(e) => e.stopPropagation()}
-        >
-          Thread
-        </a>
-        <button
-          type="button"
-          onClick={() =>
-            openDetail("agent:reddit-reply", {
-              subreddit: sub,
-              thread: title,
-              suggestedReply,
-              reason,
-              url,
-            })
-          }
-          className="mc-btn-primary inline-flex h-9 items-center gap-1.5 px-3 text-xs font-medium"
-        >
-          <MessageCircle className="h-3.5 w-3.5" /> Reply
-        </button>
-      </div>
-    </div>
-  );
-}
-
 function AgentDraftPreview({
   label,
   preview,
@@ -536,6 +465,5 @@ export {
   AgentFeedLoading,
   AgentFeedError,
   SuggestedTweet,
-  SuggestedReddit,
   AgentDraftPreview,
 };

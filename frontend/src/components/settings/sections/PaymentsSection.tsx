@@ -4,7 +4,7 @@ import { WalletQrModal } from "@/components/wallet/wallet-qr-modal";
 import { toast } from "sonner";
 import { usePaymentContext } from "@/context/PaymentContext";
 import { useSession } from "@/context/SessionContext";
-import { usePaymentUser } from "@/hooks/usePaymentUser";
+import { usePaymentUser } from "@/context/PaymentUserContext";
 import { useWalletConnect } from "@/hooks/useWalletConnect";
 import { api } from "@/services/api";
 import { deriveAgentWalletFromSession } from "@/services/web3auth-connect";

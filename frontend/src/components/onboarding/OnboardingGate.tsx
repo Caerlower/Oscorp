@@ -7,7 +7,7 @@ import { WalletAddressQr } from "@/components/wallet/wallet-address-qr";
 import { WALLET_BRANDS } from "@/utils/wallet-logos";
 import { readLastWalletId } from "@/services/auth";
 import { useWalletConnect } from "@/hooks/useWalletConnect";
-import { usePaymentUser } from "@/hooks/usePaymentUser";
+import { usePaymentUser } from "@/context/PaymentUserContext";
 import { useTransactionSignerContext } from "@/context/PaymentContext";
 import { useSession } from "@/context/SessionContext";
 import {

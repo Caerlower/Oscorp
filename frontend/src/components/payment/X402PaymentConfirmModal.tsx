@@ -29,8 +29,6 @@ function agentMeta(description: string) {
     reddit: "Reddit Agent",
     hackernews: "Hacker News Agent",
     twitter: "Twitter Agent",
-    brand_voice: "Brand Voice Agent",
-    competitors: "Competitors Agent",
   };
   const colors: Record<string, string> = {
     articles: AGENT_COLORS.articles,

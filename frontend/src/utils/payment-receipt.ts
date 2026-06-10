@@ -39,18 +39,6 @@ export const AGENT_RECEIPT_META: Record<string, AgentReceiptMeta> = {
     sku: "oscorp.hackernews",
     api: "/api/agents/hackernews",
   },
-  brand_voice: {
-    title: "Brand Voice",
-    description: "Brand tone profile extracted from your site and docs",
-    sku: "oscorp.brand-voice",
-    api: "/api/company/brand-voice",
-  },
-  competitors: {
-    title: "Competitors",
-    description: "Competitive landscape scan for positioning gaps",
-    sku: "oscorp.competitors",
-    api: "/api/company/competitors",
-  },
 };
 
 export function receiptShortId(tx: PaymentTransaction): string {
@@ -59,11 +47,6 @@ export function receiptShortId(tx: PaymentTransaction): string {
 
 export function receiptNetworkLabel(): string {
   return IS_ALGORAND_TESTNET ? "Algorand TestNet" : "Algorand MainNet";
-}
-
-export function shortenAddress(address: string): string {
-  if (address.length <= 12) return address;
-  return `${address.slice(0, 6)}..${address.slice(-4)}`;
 }
 
 export function formatReceiptDateTime(iso?: string): string {

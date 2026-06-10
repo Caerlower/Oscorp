@@ -16,7 +16,7 @@ import {
 import { toast } from "sonner";
 import { PaymentReceiptModal } from "@/components/payment/PaymentReceiptModal";
 import { useSession } from "@/context/SessionContext";
-import { usePaymentUser } from "@/hooks/usePaymentUser";
+import { usePaymentUser } from "@/context/PaymentUserContext";
 import { api } from "@/services/api";
 import { agentMeta, formatReceiptDateTime } from "@/utils/payment-receipt";
 import { explorerTxUrl, formatUsdc, truncateAddress, type PaidAgent } from "@/constants/payment-constants";

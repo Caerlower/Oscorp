@@ -10,7 +10,7 @@ import {
   type AgentWallet,
 } from "@/services/web3auth-connect";
 import type { TransactionSignerApi } from "@/hooks/useTransactionSigner";
-import { usePaymentUser } from "@/hooks/usePaymentUser";
+import { usePaymentUser } from "@/context/PaymentUserContext";
 import { isAgentWalletMode } from "@/types/payment-user";
 import {
   buildClientAvmSigner,

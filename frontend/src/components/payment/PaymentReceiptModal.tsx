@@ -6,9 +6,8 @@ import {
   formatReceiptDateTime,
   receiptNetworkLabel,
   receiptShortId,
-  shortenAddress,
 } from "@/utils/payment-receipt";
-import { explorerTxUrl, formatUsdc } from "@/constants/payment-constants";
+import { explorerTxUrl, formatUsdc, truncateAddress } from "@/constants/payment-constants";
 import { transactionPaymentModeLabel, type PaymentTransaction } from "@/types/payment-user";
 
 type PaymentReceiptModalProps = {
@@ -140,7 +139,7 @@ export function PaymentReceiptModal({ tx, walletAddress, onClose }: PaymentRecei
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Paid by</p>
               <p className="mt-1 text-[13px]">
-                {payerAddress ? shortenAddress(payerAddress) : "Your wallet"}
+                {payerAddress ? truncateAddress(payerAddress) : "Your wallet"}
               </p>
             </div>
           </div>

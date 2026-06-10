@@ -2,16 +2,16 @@ import { useCallback, useEffect, useMemo, useRef, useState, type Dispatch, type 
 import { useAnalysis } from "@/context/AnalysisContext";
 import { useCompanyProfile } from "@/context/CompanyProfileContext";
 import { usePaymentContext } from "@/context/PaymentContext";
-import { usePaymentUser } from "@/hooks/usePaymentUser";
+import { usePaymentUser } from "@/context/PaymentUserContext";
 import { api } from "@/services/api";
 import { x402Post } from "@/services/x402-api";
 import type { X402FetchFn } from "@/hooks/useX402Fetch";
 import { PaymentPreflightError } from "@/utils/algorand-wallet";
 import { buildAgentContext, technicalDetailsForHn } from "@/utils/agent-context";
 import type { PaidAgent } from "@/constants/payment-constants";
-import type { HackerNewsPost, RedditOpportunity, TweetVariation } from "@/types/agent-types";
+import type { HackerNewsPost, TweetVariation } from "@/types/agent-types";
 
-type PaidAgentKey = "reddit" | "linkedin" | "articles" | "hackernews";
+type PaidAgentKey = "linkedin" | "articles" | "hackernews";
 type AgentKey = PaidAgentKey | "twitter";
 type PaidAgentAccessStatus = "unlocked" | "needs_load" | "needs_payment";
 
@@ -41,7 +41,6 @@ type AgentSlice<T> = {
 };
 
 export type AgentsFeedState = {
-  reddit: AgentSlice<RedditOpportunity[]>;
   twitter: AgentSlice<TweetVariation[]>;
   linkedin: AgentSlice<LinkedInData>;
   articles: AgentSlice<ArticleData>;
@@ -61,7 +60,6 @@ function emptySlice<T>(hydrating = false): AgentSlice<T> {
 }
 
 const PAID_AGENT_KEYS: Record<PaidAgentKey, PaidAgent> = {
-  reddit: "reddit",
   linkedin: "linkedin",
   articles: "articles",
   hackernews: "hackernews",
@@ -114,7 +112,6 @@ export function useAgentsFeed(company: string): AgentsFeedState {
   const { profile } = useCompanyProfile();
   const { triggerPayment } = usePaymentContext();
   const { user: paymentUser } = usePaymentUser();
-  const [reddit, setReddit] = useState(emptySlice<RedditOpportunity[]>());
   const [twitter, setTwitter] = useState(emptySlice<TweetVariation[]>());
   const [linkedin, setLinkedin] = useState(emptySlice<LinkedInData>(true));
   const [articles, setArticles] = useState(emptySlice<ArticleData>(true));
@@ -132,8 +129,6 @@ export function useAgentsFeed(company: string): AgentsFeedState {
 
   const setters = useMemo(
     () => ({
-      reddit: setReddit as PaidSetter,
-      twitter: setTwitter as PaidSetter,
       linkedin: setLinkedin as PaidSetter,
       articles: setArticles as PaidSetter,
       hackernews: setHackernews as PaidSetter,
@@ -314,15 +309,6 @@ export function useAgentsFeed(company: string): AgentsFeedState {
 
       const runAgentRequest = async (fetch: X402FetchFn) => {
         switch (key) {
-          case "reddit":
-            return (
-              await x402Post<{ opportunities: RedditOpportunity[] }>(
-                fetch,
-                "/api/agents/reddit",
-                context,
-                "reddit",
-              )
-            ).opportunities;
           case "linkedin":
             return x402Post(fetch, "/api/agents/linkedin", { ...context, postType: "lesson_learned" }, "linkedin");
           case "articles":
@@ -418,7 +404,6 @@ export function useAgentsFeed(company: string): AgentsFeedState {
   );
 
   return {
-    reddit,
     twitter,
     linkedin,
     articles,

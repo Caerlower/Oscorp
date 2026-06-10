@@ -1,6 +1,7 @@
 import paymentManifest from "../../../shared/payment-constants.json";
 
-const paidAgentKeys = paymentManifest.paidAgents;
+const paidAgentKeys = paymentManifest.paidAgents as readonly string[];
+const agentPriceEntries = paymentManifest.agentPrices as Record<string, number>;
 
 /** Treasury address — sourced from shared/payment-constants.json. */
 export const RECIPIENT_ADDRESS = paymentManifest.recipientAddress;
@@ -44,16 +45,10 @@ export const MIN_AGENT_ALGO_MICRO =
 /** Minimum ALGO before USDC opt-in can succeed (MBR + opt-in tx fee). */
 export const MIN_AGENT_ALGO_FOR_OPTIN_MICRO = MIN_AGENT_ALGO_MBR_MICRO + 5_000;
 
-export type PaidAgent =
-  | "reddit"
-  | "linkedin"
-  | "articles"
-  | "hackernews"
-  | "brand_voice"
-  | "competitors";
+export type PaidAgent = (typeof paymentManifest.paidAgents)[number];
 
 export const AGENT_PRICES = Object.fromEntries(
-  paidAgentKeys.map((key) => [key, paymentManifest.agentPrices[key]]),
+  paidAgentKeys.map((key) => [key, agentPriceEntries[key] ?? 0]),
 ) as Record<PaidAgent, number>;
 
 export function formatUsdc(amount: number): string {

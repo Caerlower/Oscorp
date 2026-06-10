@@ -8,17 +8,17 @@ import {
   type ReactNode,
 } from "react";
 import { useSession } from "@/context/SessionContext";
-import { usePaymentUser } from "@/hooks/usePaymentUser";
+import { usePaymentUser } from "@/context/PaymentUserContext";
 import { api } from "@/services/api";
 import type { PaidAgent } from "@/constants/payment-constants";
 import type { PaymentTransaction } from "@/types/payment-user";
 
 const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
 
-const TRACKED_AGENTS: PaidAgent[] = ["reddit", "linkedin", "articles", "hackernews"];
+const TRACKED_AGENTS: PaidAgent[] = ["linkedin", "articles", "hackernews"];
 
 function isRecentConfirmed(tx: PaymentTransaction): boolean {
-  if (tx.status !== "confirmed") return false;
+  if (tx.status !== "confirmed" || !tx.created_at) return false;
   const created = new Date(tx.created_at).getTime();
   return Number.isFinite(created) && Date.now() - created < TWENTY_FOUR_HOURS_MS;
 }

@@ -22,7 +22,7 @@ import { useDashboardDetail } from "@/components/dashboard/detail-context";
 import { agentAccentForDetailId } from "@/constants/detail-agent-theme";
 import { downloadTextFile, slugifyFilename, type DocumentKey } from "@/utils/edited-documents";
 import type { FullAnalysisResult } from "@/types/analysis-types";
-import { usePaymentUser } from "@/hooks/usePaymentUser";
+import { usePaymentUser } from "@/context/PaymentUserContext";
 import { api } from "@/services/api";
 import { toast } from "sonner";
 import { cn } from "@/utils/utils";
