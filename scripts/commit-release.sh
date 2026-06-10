@@ -228,7 +228,6 @@ git add \
   frontend/vite.config.ts \
   frontend/tsconfig.json \
   frontend/components.json \
-  frontend/wrangler.jsonc \
   frontend/.env.example
 commit "chore(frontend): update build config, styles, and pnpm toolchain"
 

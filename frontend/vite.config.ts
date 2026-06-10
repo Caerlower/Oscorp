@@ -1,18 +1,17 @@
-// @lovable.dev/vite-tanstack-config already includes the following — do NOT add them manually
-// or the app will break with duplicate plugins:
-//   - tanstackStart, viteReact, tailwindcss, tsConfigPaths, cloudflare (build-only),
-//     componentTagger (dev-only), VITE_* env injection, @ path alias, React/TanStack dedupe,
-//     error logger plugins, and sandbox detection (port/host/strictPort).
-// You can pass additional config via defineConfig({ vite: { ... } }) if needed.
+// @lovable.dev/vite-tanstack-config bundles tanstackStart, viteReact, tailwindcss, etc.
+// Pass extra Vite options via defineConfig({ vite: { ... } }).
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
 
-// Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
-// @cloudflare/vite-plugin builds from this — wrangler.jsonc main alone is insufficient.
+// Vercel builds use Nitro's `vercel` preset (no Cloudflare). Local builds stay Vite-only.
+const nitro = process.env.VERCEL ? { preset: "vercel" as const } : false;
+
+// Custom SSR entry wraps TanStack Start with branded error pages.
 export default defineConfig({
+  nitro,
   tanstackStart: {
     server: { entry: "server" },
   },
@@ -35,6 +34,8 @@ export default defineConfig({
     resolve: {
       alias: {
         buffer: "buffer/",
+        crypto: "crypto-browserify",
+        stream: "stream-browserify",
         "@oscorp/x402-payer": path.resolve(rootDir, "../x402-payer/src/index.ts"),
       },
     },
@@ -47,8 +48,6 @@ export default defineConfig({
         "@perawallet/connect",
         "@blockshake/defly-connect",
         "@x402-avm/avm",
-        "@x402-avm/core",
-        "@x402-avm/fetch",
       ],
       esbuildOptions: {
         define: {
