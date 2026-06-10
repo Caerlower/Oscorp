@@ -1,27 +1,31 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Loader2 } from "lucide-react";
 import { useEffect } from "react";
-import { useWallet } from "@txnlab/use-wallet-react";
-import { Logo } from "@/components/Logo";
-import { WalletConnectPanel } from "@/components/WalletConnectPanel";
+import { WalletConnectPanel } from "@/components/wallet";
 import { useSession } from "@/context/SessionContext";
-import { sessionHomePath } from "@/lib/session-routes";
-import { isWalletExtensionConnected } from "@/lib/session-wallet";
-import type { SessionConnect } from "@/lib/api";
+import { useAuth } from "@/hooks/useAuth";
+import { navigateAfterAuth } from "@/utils/navigation";
+import { prefersNativeWalletReconnect } from "@/services/auth";
+import type { SessionConnect } from "@/services/api";
 
 type AuthSearch = { redirect?: string };
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (search: Record<string, unknown>): AuthSearch => {
-    const redirect =
-      typeof search.redirect === "string" && search.redirect.startsWith("/")
-        ? search.redirect
-        : undefined;
-    return { redirect };
+    const raw = search.redirect;
+    if (typeof raw !== "string" || !raw.startsWith("/")) {
+      return {};
+    }
+    try {
+      return { redirect: decodeURIComponent(raw) };
+    } catch {
+      return { redirect: raw };
+    }
   },
   head: () => ({
     meta: [
       { title: "Sign in · Oscorp" },
-      { name: "description", content: "Connect your Algorand wallet to start." },
+      { name: "description", content: "Sign in with your Algorand wallet to open the AI CMO terminal." },
     ],
   }),
   component: AuthPage,
@@ -30,77 +34,47 @@ export const Route = createFileRoute("/auth")({
 function AuthPage() {
   const navigate = useNavigate();
   const { redirect } = Route.useSearch();
-  const { userId, walletAddress, status, loading } = useSession();
-  const { activeAccount } = useWallet();
-  const walletLinked = isWalletExtensionConnected(activeAccount?.address);
-  const needsReconnect = !!userId && !!walletAddress && !walletLinked;
+  const { phase } = useAuth();
+  const { status } = useSession();
 
-  useEffect(() => {
-    if (!userId || loading || !status || !walletLinked) return;
-    if (redirect && redirect !== "/auth") {
-      navigate({ to: redirect, replace: true });
-      return;
-    }
-    navigate({ to: sessionHomePath(status), replace: true });
-  }, [userId, status, loading, walletLinked, navigate, redirect]);
+  const needsReconnect = phase === "needs_reconnect";
+  const nativeReconnect = needsReconnect && prefersNativeWalletReconnect();
 
   const onConnected = (session: SessionConnect) => {
-    if (redirect && redirect !== "/auth") {
-      navigate({ to: redirect });
-      return;
-    }
-    navigate({ to: sessionHomePath(session) });
+    navigateAfterAuth(navigate, session, redirect);
   };
 
-  if (userId && loading && !status && !needsReconnect) {
-    return (
-      <AuthShell>
-        <p className="text-sm text-muted-foreground">Restoring your session…</p>
-      </AuthShell>
-    );
-  }
+  useEffect(() => {
+    if (phase !== "authenticated" || !status) return;
+    navigateAfterAuth(navigate, status, redirect, true);
+  }, [phase, status, navigate, redirect]);
 
-  if (userId && status && walletLinked) {
+  if (phase === "booting" || phase === "restoring") {
     return (
-      <AuthShell>
-        <p className="text-sm text-muted-foreground">Taking you back in…</p>
-      </AuthShell>
+      <div className="auth-shell flex min-h-screen items-center justify-center">
+        <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
+          <Loader2 className="h-5 w-5 animate-spin text-primary" />
+          {phase === "booting" ? "Loading…" : "Restoring session…"}
+        </div>
+      </div>
     );
   }
 
   return (
-    <AuthShell>
-      <div className="sign-in-card w-full max-w-[440px] px-6 py-8 sm:px-8 sm:py-10">
-        {needsReconnect && (
-          <div className="mb-6 rounded-2xl border border-primary/20 bg-primary/5 px-4 py-3 text-center">
-            <p className="text-sm font-medium text-foreground">Reconnect your wallet</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Your Oscorp account is saved — link Pera, Defly, or Lute again to sign transactions.
-            </p>
-          </div>
-        )}
+    <div className="auth-shell relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-12">
+      <div className="pointer-events-none absolute inset-0" aria-hidden>
+        <div className="auth-glow auth-glow-a" />
+        <div className="auth-glow auth-glow-b" />
+        <div className="auth-grid" />
+      </div>
+
+      <div className="auth-card relative w-full max-w-[440px]">
         <WalletConnectPanel
-          title={needsReconnect ? "Reconnect wallet" : "Sign in"}
+          variant={nativeReconnect ? "native" : "default"}
+          onBack={() => navigate({ to: "/" })}
           onConnected={onConnected}
         />
       </div>
-      <Link
-        to="/"
-        className="mt-8 text-sm text-muted-foreground transition hover:text-foreground"
-      >
-        ← Back to home
-      </Link>
-    </AuthShell>
-  );
-}
-
-function AuthShell({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center bg-[oklch(0.94_0.01_270)] px-4 py-12">
-      <div className="absolute left-6 top-6">
-        <Logo />
-      </div>
-      {children}
     </div>
   );
 }
