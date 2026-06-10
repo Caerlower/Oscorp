@@ -1,0 +1,40 @@
+# Render Blueprint — deploy from repo root: Dashboard → New → Blueprint → connect GitHub.
+# Secrets (GROQ_API_KEY, SUPABASE_SERVICE_KEY, etc.) are prompted on first deploy.
+services:
+  - type: web
+    name: oscorp-api
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install .
+    startCommand: uvicorn app.api.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.8"
+      - key: OSCORP_DATA_DIR
+        value: /tmp/oscorp-data
+      - key: ALGORAND_NODE_URL
+        value: https://testnet-api.algonode.cloud
+      - key: USDC_ASSET_ID
+        value: "10458941"
+      - key: FACILITATOR_URL
+        value: https://facilitator.goplausible.xyz
+      - key: GROQ_MODEL
+        value: llama-3.3-70b-versatile
+      - key: GROQ_BASE_URL
+        value: https://api.groq.com/openai/v1
+      - key: CORS_ORIGINS
+        value: https://oscorp-protocol.vercel.app,https://oscorp-caerlowers-projects.vercel.app,http://127.0.0.1:8080,http://localhost:8080
+      - key: GROQ_API_KEY
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: FIRECRAWL_API_KEY
+        sync: false
+      - key: PAGESPEED_API_KEY
+        sync: false
+      - key: DEV_FAUCET_MNEMONIC
+        sync: false

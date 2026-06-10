@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     debug: bool = False
     data_dir: str = Field(default="data", validation_alias="OSCORP_DATA_DIR")
     api_host: str = "0.0.0.0"
-    api_port: int = 8000
+    api_port: int = Field(default=8000, validation_alias=AliasChoices("API_PORT", "PORT"))
 
     groq_api_key: str = ""
     groq_model: str = "llama-3.3-70b-versatile"

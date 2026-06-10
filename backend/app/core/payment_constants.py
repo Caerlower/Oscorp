@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-_MANIFEST_PATH = Path(__file__).resolve().parents[3] / "shared" / "payment-constants.json"
+_MANIFEST_PATH = Path(__file__).resolve().parents[2] / "shared" / "payment-constants.json"
 _MANIFEST = json.loads(_MANIFEST_PATH.read_text(encoding="utf-8"))
 
 # Replace treasury in shared/payment-constants.json before mainnet launch.
