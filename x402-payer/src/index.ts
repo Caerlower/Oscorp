@@ -1,121 +1,77 @@
-import { config } from "dotenv";
-import { Hono } from "hono";
-import { serve } from "@hono/node-server";
-import algosdk from "algosdk";
-import { x402Client, wrapFetchWithPayment, x402HTTPClient } from "@x402/fetch";
-import { toClientAvmSigner, ExactAvmScheme, ALGORAND_TESTNET_CAIP2 } from "@x402/avm";
+import { x402Client, x402HTTPClient } from "@x402-avm/core/client";
+import type { ClientAvmSigner } from "@x402-avm/avm";
+import { wrapFetchWithPayment } from "@x402-avm/fetch";
+import { registerExactAvmScheme } from "@x402-avm/avm/exact/client";
+import type { PaymentRequirements, SettleResponse } from "@x402-avm/core/types";
 
-config();
+export type { ClientAvmSigner };
 
-const port = Number(process.env.PORT ?? 8110);
-const avmMnemonic = process.env.AVM_MNEMONIC ?? "";
+export type X402FetchOptions = {
+  /** Return false to cancel before the wallet signs the x402 payment. */
+  onPaymentRequired?: (amountLabel: string, description: string) => Promise<boolean>;
+  /** Called after facilitator settlement with the on-chain transaction id. */
+  onPaymentComplete?: (txId: string, description: string) => void;
+  /** Algod URL for building x402 payment transactions (defaults to public testnet). */
+  algodUrl?: string;
+  algodToken?: string;
+};
 
-/** @x402/avm expects base64-encoded 64-byte Algorand secret key (not algo25 wrapped seed). */
-function secretKeyBase64FromMnemonic(mnemonic: string): string {
-  const { sk } = algosdk.mnemonicToSecretKey(mnemonic.trim());
-  return Buffer.from(sk).toString("base64");
-}
-
-async function payerFromMnemonic(mnemonic: string) {
-  const signer = toClientAvmSigner(secretKeyBase64FromMnemonic(mnemonic));
+/**
+ * Creates an x402-enabled fetch that handles HTTP 402 responses automatically:
+ * parse PAYMENT-REQUIRED → sign Algorand payment → retry with PAYMENT-SIGNATURE.
+ */
+export function createX402Fetch(
+  signer: ClientAvmSigner,
+  options: X402FetchOptions = {},
+  fetchImpl: typeof fetch = fetch,
+) {
   const client = new x402Client();
-  client.register(ALGORAND_TESTNET_CAIP2, new ExactAvmScheme(signer));
-  return { signer, fetchWithPayment: wrapFetchWithPayment(fetch, client), httpClient: new x402HTTPClient(client) };
+
+  client.onBeforePaymentCreation(async (context: {
+    paymentRequired: { resource?: { description?: string } };
+    selectedRequirements: PaymentRequirements;
+  }) => {
+    if (!options.onPaymentRequired) return;
+    const req = context.selectedRequirements;
+    const micro = Number.parseInt(req.amount, 10);
+    const amountLabel = `$${(micro / 1_000_000).toFixed(2)} USDC`;
+    const description =
+      context.paymentRequired.resource?.description ?? req.extra?.name?.toString() ?? "agent";
+    const approved = await options.onPaymentRequired(amountLabel, description);
+    if (!approved) {
+      return { abort: true, reason: "Payment cancelled" };
+    }
+  });
+
+  registerExactAvmScheme(client, {
+    signer,
+    algodConfig:
+      options.algodUrl || options.algodToken
+        ? { algodUrl: options.algodUrl, algodToken: options.algodToken }
+        : undefined,
+  });
+  const httpClient = new x402HTTPClient(client);
+  const fetchWithPayment = wrapFetchWithPayment(fetchImpl, httpClient);
+
+  return async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+    const response = await fetchWithPayment(input, init);
+    if (response.ok && options.onPaymentComplete) {
+      try {
+        const settle = httpClient.getPaymentSettleResponse((name: string) => response.headers.get(name));
+        const description = settleDescriptionFromResponse(response, settle);
+        if (settle.transaction) {
+          options.onPaymentComplete(settle.transaction, description);
+        }
+      } catch {
+        /* unpaid or header not present */
+      }
+    }
+    return response;
+  };
 }
 
-const defaultPayer = avmMnemonic ? await payerFromMnemonic(avmMnemonic) : null;
-const avmSigner = defaultPayer?.signer;
-
-const app = new Hono();
-
-app.get("/health", (c) =>
-  c.json({
-    ok: true,
-    service: "oscorp-x402-payer",
-    network: ALGORAND_TESTNET_CAIP2,
-    defaultPayer: avmSigner?.address ?? null,
-  }),
-);
-
-app.post("/fetch", async (c) => {
-  const body = await c.req.json<{
-    url: string;
-    method?: string;
-    json?: unknown;
-    payerMnemonic?: string;
-  }>();
-
-  if (!body.url) {
-    return c.json({ error: "url is required" }, 400);
-  }
-
-  const method = (body.method ?? "POST").toUpperCase();
-  const init: RequestInit = { method };
-  if (body.json !== undefined && method !== "GET") {
-    init.headers = { "Content-Type": "application/json" };
-    init.body = JSON.stringify(body.json);
-  }
-
-  const mnemonic = body.payerMnemonic?.trim();
-  if (!mnemonic) {
-    if (!defaultPayer) {
-      return c.json({ error: "payerMnemonic is required (no default AVM_MNEMONIC)" }, 400);
-    }
-  }
-  const payer = mnemonic ? await payerFromMnemonic(mnemonic) : defaultPayer!;
-
-  let response: Response;
-  try {
-    response = await payer.fetchWithPayment(body.url, init);
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    const isFetch =
-      msg.includes("fetch failed") ||
-      msg.includes("ECONNREFUSED") ||
-      msg.includes("Failed to fetch");
-    const detail = isFetch
-      ? `${msg} — start provider services (trend-analyzer :8101, hook-generator :8102).`
-      : msg;
-    return c.json({
-      ok: false,
-      status: 502,
-      statusText: "x402 payment error",
-      body: { error: detail },
-      payment: null,
-      payer: payer.signer.address,
-    });
-  }
-
-  let parsed: unknown = null;
-  const text = await response.text();
-  try {
-    parsed = text ? JSON.parse(text) : null;
-  } catch {
-    parsed = { raw: text };
-  }
-
-  let payment: unknown = null;
-  if (response.ok) {
-    payment = payer.httpClient.getPaymentSettleResponse((name) => response.headers.get(name));
-  }
-
-  const hint =
-    response.status === 402
-      ? "Payment not accepted. Ensure agent has TestNet USDC, is opted into USDC ASA 10458941, and x402-payer was restarted after signer fix."
-      : undefined;
-
-  return c.json({
-    ok: response.ok,
-    status: response.status,
-    statusText: response.statusText,
-    body: parsed,
-    payment,
-    payer: payer.signer.address,
-    hint,
-  });
-});
-
-console.info(
-  `Oscorp x402 payer ready on :${port}${avmSigner ? ` (default ${avmSigner.address})` : " (per-request mnemonic only)"}`,
-);
-serve({ fetch: app.fetch, port });
+function settleDescriptionFromResponse(response: Response, settle: SettleResponse): string {
+  const fromHeader = response.headers.get("x-oscorp-agent");
+  if (fromHeader) return fromHeader;
+  return settle.network ?? "agent";
+}
