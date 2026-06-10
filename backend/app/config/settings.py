@@ -1,4 +1,4 @@
-from pydantic import Field
+from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -7,42 +7,34 @@ class Settings(BaseSettings):
 
     app_name: str = "Oscorp"
     debug: bool = False
-    # Persist users/agent wallets across backend restarts (dev default: ./data)
     data_dir: str = Field(default="data", validation_alias="OSCORP_DATA_DIR")
     api_host: str = "0.0.0.0"
     api_port: int = 8000
 
-    # Groq (OpenAI-compatible API) — draft generation
     groq_api_key: str = ""
     groq_model: str = "llama-3.3-70b-versatile"
     groq_base_url: str = "https://api.groq.com/openai/v1"
 
-    x402_payer_url: str = "http://127.0.0.1:8110"
-    # Skip x402 + provider HTTP calls; returns mock provider JSON (Groq draft still runs)
-    provider_stub_mode: bool = Field(
-        default=False,
-        validation_alias="OSCORP_PROVIDER_STUB",
-    )
+    firecrawl_api_key: str = ""
+    pagespeed_api_key: str = ""
 
-    algod_address: str = "https://testnet-api.algonode.cloud"
+    algod_address: str = Field(
+        default="https://testnet-api.algonode.cloud",
+        validation_alias="ALGORAND_NODE_URL",
+    )
     algod_token: str = ""
     usdc_asset_id: int = 10458941
-    # Optional: TestNet account with ALGO — auto-funds new agent wallets + USDC opt-in on connect
-    dev_faucet_mnemonic: str = ""
-    cors_origins: str = "http://127.0.0.1:5173,http://localhost:5173,http://127.0.0.1:3000"
-
-    trend_analyzer_url: str = "http://127.0.0.1:8101"
-    hook_generator_url: str = "http://127.0.0.1:8102"
-    thread_generator_url: str = "http://127.0.0.1:8103"
-
-    # Pre-cycle research via Groq (policy + memory; not live X API)
-    groq_research_enabled: bool = Field(
-        default=True,
-        validation_alias="OSCORP_GROQ_RESEARCH_ENABLED",
+    dev_faucet_mnemonic: str = Field(
+        default="",
+        validation_alias=AliasChoices("DEV_FAUCET_MNEMONIC", "OSCORP_DEV_FAUCET_MNEMONIC"),
     )
-
-    telegram_operator: str = "oscorp"
-    telegram_bot_token: str = ""
+    facilitator_url: str = Field(
+        default="https://facilitator.goplausible.xyz",
+        validation_alias="FACILITATOR_URL",
+    )
+    supabase_url: str = Field(default="", validation_alias="SUPABASE_URL")
+    supabase_service_key: str = Field(default="", validation_alias="SUPABASE_SERVICE_KEY")
+    cors_origins: str = "http://127.0.0.1:5173,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:8080,http://localhost:8080"
 
 
 settings = Settings()

@@ -1,7 +1,7 @@
 [project]
 name = "oscorp-backend"
-version = "0.4.0"
-description = "Oscorp — X growth operator backend (Groq research + x402)"
+version = "0.5.0"
+description = "Oscorp — AI CMO dashboard backend (website analysis + wallet session)"
 requires-python = ">=3.11"
 dependencies = [
   "fastapi>=0.115.0",
@@ -9,14 +9,14 @@ dependencies = [
   "pydantic>=2.9.0",
   "pydantic-settings>=2.6.0",
   "httpx>=0.28.0",
+  "beautifulsoup4>=4.12.0",
   "openai>=1.55.0",
   "py-algorand-sdk>=2.7.0",
   "python-dotenv>=1.0.1",
-  "python-telegram-bot>=21.6",
 ]
 
 [project.optional-dependencies]
-dev = ["ruff>=0.8.0"]
+dev = ["ruff>=0.8.0", "pytest>=8.0.0"]
 
 [build-system]
 requires = ["hatchling"]
