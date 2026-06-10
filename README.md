@@ -1,97 +1,169 @@
 # Oscorp
 
-**Telegram + web growth copilot for X** — your agent pays specialist APIs via x402 (TestNet USDC), Groq drafts posts, you approve every publish.
+Oscorp is an **AI CMO terminal** for founders and marketers. Connect an Algorand wallet, enter your website, and get SEO analysis plus AI-generated company documents. Paid content agents (Reddit, LinkedIn, Articles, Hacker News) run only after a real **x402 USDC micropayment** on TestNet — no fake checkout, no manual treasury transfers in the app.
+
+---
 
 ## What it does
 
-- **Web app**: wallet → policy → fund agent → run cycles → drafts queue with x402 receipts
-- **Telegram** (recommended daily flow): `/link` → `/run` → **Post on X** · **Regenerate** · **Skip**
-- **x402**: USDC micropayments to trend / hook providers (tx links on each draft)
-- **Regenerate**: new copy from Groq only — no extra provider spend
-- **Research**: Groq pre-cycle topics/angles from policy + memory (`OSCORP_GROQ_RESEARCH_ENABLED`)
+1. **Sign in** with Pera, Defly, Lute, or Web3Auth (embedded wallet).
+2. **Analyze your site** — scrape, PageSpeed, Groq-generated docs (product info, competitors, brand voice, strategy, llms.txt).
+3. **Run paid agents** — each action costs a small USDC amount; the browser signs the payment, the backend settles on-chain.
+4. **Chat with the AI CMO** — ask about your company, competitors, or what to publish next.
 
-## Run a growth cycle (dev)
+User profiles, payment history, and unlocked agent content are stored in **Supabase**.
 
-The backend calls **x402-payer** (`:8110`), which pays **provider-services** (`:8101`–`:8103`). If you only run the API + frontend, **Start agent** will fail with a connection error.
+---
 
-**Option A — full stack** (real x402 micropayments):
+## How the pieces fit together
+
+```mermaid
+flowchart LR
+  subgraph browser["Browser :8080"]
+    UI[Dashboard]
+    Wallet[Pera / Web3Auth]
+    X402[x402 client]
+  end
+
+  subgraph api["Backend :8000"]
+    FastAPI[FastAPI]
+    Agents[AI agents]
+    MW[x402 middleware]
+  end
+
+  Fac[GoPlausible facilitator]
+  DB[(Supabase)]
+  Chain[Algorand TestNet]
+
+  UI --> Wallet
+  UI --> X402
+  X402 -->|POST /api/agents/*| FastAPI
+  FastAPI --> MW
+  MW -->|verify + settle| Fac
+  Fac --> Chain
+  FastAPI --> Agents
+  FastAPI --> DB
+```
+
+| Service | Port | Role |
+|---------|------|------|
+| `frontend/` | 8080 | React UI, wallet connect, signs x402 payments |
+| `backend/` | 8000 | API, Groq agents, x402 gate before agent runs |
+| Supabase | cloud | Users, transactions, saved agent deliverables |
+| Facilitator | external | Verifies and settles USDC payments on-chain |
+
+The `x402-payer/` package is a **shared library** (`createX402Fetch`) imported by the frontend. You do **not** need to run its optional Node proxy for normal dashboard use.
+
+---
+
+## x402 payment flow
+
+When you trigger a paid agent, this happens automatically:
+
+```mermaid
+sequenceDiagram
+  participant UI as Browser
+  participant API as Backend
+  participant Fac as Facilitator
+
+  UI->>API: POST /api/agents/reddit
+  API-->>UI: 402 PAYMENT-REQUIRED
+  UI->>UI: Confirm + sign USDC txn
+  UI->>API: Retry with PAYMENT-SIGNATURE
+  API->>Fac: /verify
+  Fac-->>API: valid
+  API->>Fac: /settle
+  Fac-->>API: on-chain tx
+  API-->>UI: 200 agent data
+```
+
+- **Per-action mode** — you approve each payment in a confirmation modal, then sign with your main wallet.
+- **Agent-wallet mode** — fund a derived agent address with USDC; payments auto-sign from that wallet.
+- **Prices & treasury** — `shared/payment-constants.json` (same file for frontend and backend).
+
+Your wallet needs **TestNet USDC** to run paid agents. Get TestNet ALGO/USDC from a faucet if needed.
+
+---
+
+## Setup
+
+**You need:** Python 3.11+, Node 20+, pnpm, a [Groq API key](https://console.groq.com), and a free [Supabase](https://supabase.com) project.
+
+### 1. Environment files
 
 ```bash
 cd Oscorp
-./scripts/dev-up.sh              # background: payer, providers, backend, telegram (if token set)
-cd frontend && npm run dev       # web UI
-./scripts/dev-down.sh            # stop background services
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
 ```
 
-Or `./scripts/dev-stack.sh` for manual per-terminal control.
+Set these in `backend/.env`:
 
-Minimum for one cycle: **x402-payer**, **trend-analyzer**, **hook-generator**, **backend**, **frontend**.
+| Variable | Where to get it |
+|----------|-----------------|
+| `GROQ_API_KEY` | [console.groq.com](https://console.groq.com) → API Keys |
+| `SUPABASE_URL` | Supabase → Project Settings → API → Project URL |
+| `SUPABASE_SERVICE_KEY` | Same page → `service_role` secret (starts with `eyJ`) |
 
-**Option B — stub providers** (Groq draft only, no x402):
+`frontend/.env` defaults work locally. Add `VITE_WEB3AUTH_CLIENT_ID` only if you use Web3Auth ([developer.metamask.io](https://developer.metamask.io)) — or run `./scripts/setup-web3auth.sh`.
+
+### 2. Database
+
+Open the Supabase **SQL editor** and run the entire file:
+
+```
+backend/supabase/schema.sql
+```
+
+### 3. Install
 
 ```bash
-# backend/.env
-OSCORP_PROVIDER_STUB=true
+cd backend && pip install -e ".[dev]"
+cd ../frontend && pnpm install
 ```
 
-Restart uvicorn after changing `.env`.
+---
 
-## Architecture (current default)
+## Run
 
-```mermaid
-flowchart TB
-    U[User]
-    W[Web App]
-    TG[Telegram Bot]
-    B[Oscorp Backend]
-    XP[x402 Payer]
-    P1[Trend API]
-    P2[Hook API]
-    F[Facilitator]
-
-    U --> W & TG
-    TG --> B
-    W --> B
-    B --> XP --> P1 & P2
-    P1 & P2 --> F
-```
-
-## Agents / services in the stack
-
-| Component | Role |
-|-----------|------|
-| **Oscorp backend** | Orchestrator, wallet, policy, cycles |
-| **Groq** | Draft copy + Telegram conversation |
-| **x402-payer** | Signs USDC payments from agent wallet |
-| **Provider APIs** | Trend, hook, thread specialists (paid via x402) |
-| **Telegram bot** | User chat, memory, cycle triggers |
-| **Frontend** | Wallet UI, onboarding, drafts |
-
-Research uses **Groq only** (no live X API). See [docs/growth-research.md](docs/growth-research.md).
-
-## Quick start
+Open **two terminals** from the `Oscorp` folder:
 
 ```bash
-# 1) Env
-cd backend && cp .env.example .env   # add GROQ_API_KEY, TELEGRAM_BOT_TOKEN
-cd ../frontend && cp .env.example .env
+# Terminal 1 — API
+cd backend && uvicorn app.api.main:app --reload --port 8000
 
-# 2) See scripts/dev-stack.sh — start payer, providers, backend, telegram, frontend
-./scripts/dev-stack.sh
+# Terminal 2 — UI (proxies /api → :8000)
+cd frontend && pnpm dev
 ```
 
-Open http://127.0.0.1:5173
+Open **http://localhost:8080**
 
-## Docs
+Check the API: http://127.0.0.1:8000/health
 
-- [Env setup](docs/env-setup.md)
-- [Telegram](docs/telegram.md)
-- [x402 on Algorand](docs/x402-algorand.md)
-- [Architecture](docs/ARCHITECTURE.md)
-- [Growth research (Groq)](docs/growth-research.md)
+Helper scripts: `./scripts/dev-stack.sh` prints these commands; `./scripts/dev-up.sh` starts the backend in the background.
 
-## DoraHacks pitch
+---
 
-**Problem:** X growth needs paid specialist tools and a controlled agent budget — not fake analytics.
+## Verify x402 is working
 
-**Solution:** Oscorp runs a funded **agent wallet**, pays providers via **x402 on Algorand**, drafts on **Groq**, and keeps humans in the loop before posting.
+Without a payment header, paid routes return 402:
+
+```bash
+curl -i -X POST http://127.0.0.1:8000/api/agents/reddit \
+  -H "Content-Type: application/json" \
+  -d '{"productInfo":"test"}'
+```
+
+You should see `PAYMENT-REQUIRED` and `x402Version: 2` in the response.
+
+---
+
+## Project folders
+
+| Folder | What’s inside |
+|--------|----------------|
+| `frontend/` | React 19 app — dashboard, mission control, wallet, payment modals |
+| `backend/` | FastAPI — `app/core/x402_middleware.py`, agent routes, Groq analysis |
+| `x402-payer/` | `createX402Fetch()` for browser payments; optional `:8110` proxy for scripts |
+| `shared/` | `payment-constants.json` — treasury address and agent prices |
+| `docs/x402.md` | Protocol details, facilitator config, curl examples |

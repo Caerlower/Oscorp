@@ -3,9 +3,7 @@
     { "path": ".", "name": "Oscorp" },
     { "path": "frontend", "name": "Frontend" },
     { "path": "backend", "name": "Backend" },
-    { "path": "x402-payer", "name": "x402 Payer" },
-    { "path": "provider-services", "name": "Providers" },
-    { "path": "integrations/openclaw", "name": "OpenClaw" }
+    { "path": "x402-payer", "name": "x402 Payer" }
   ],
   "settings": {
     "python.analysis.extraPaths": ["backend"],

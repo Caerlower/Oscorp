@@ -1,30 +1,39 @@
 # Oscorp Frontend
 
-Web app for Oscorp — connect Algorand wallet, sign growth policy, fund agent wallet, run x402-powered growth cycles.
+React dashboard for the AI CMO terminal — wallet auth, site analysis UI, x402 payments, and agent feed.
 
-Built from **oscorp-companion-spark** (TanStack Start + Vite + Tailwind).
+**Full setup:** see [../README.md](../README.md).
 
-## Setup
+## Run
 
 ```bash
-cd frontend
-cp .env.example .env
-npm install
-npm run dev
+cp .env.example .env   # optional overrides
+pnpm install
+pnpm dev
 ```
 
-Open http://127.0.0.1:5173
+→ http://localhost:8080 (proxies `/api` → backend `:8000`)
 
-## User flow
+## Stack
 
-1. **Connect wallet** (`/auth`) — Pera or Defly on TestNet
-2. **Sign policy** (`/onboarding`) — niche, tone, spend cap
-3. **Fund agent** (`/agent`) — USDC transfer to agent wallet
-4. **Run cycle** — dashboard or agent page → x402 provider payments → draft
-5. **Review drafts** (`/drafts`) → Post on X via intent URL
+React 19 · TanStack Router · TanStack Query · Tailwind · Algorand wallets (Pera / Defly / Lute / Web3Auth) · `@x402-avm` via `../x402-payer`
 
-## Backend
+## Routes
 
-Requires Oscorp API at `VITE_API_URL` (default `http://127.0.0.1:8000`).
+| Path | Purpose |
+|------|---------|
+| `/` | Landing |
+| `/auth` | Wallet sign-in |
+| `/dashboard` | Mission control |
+| `/settings` | Account, payments, websites |
 
-Also run: `x402-payer`, provider services, `uvicorn app.api.main:app`.
+## Key paths
+
+```
+src/
+  hooks/useX402Fetch.ts       # Browser x402 client + wallet signing
+  context/PaymentContext.tsx  # Payment modals + provider
+  components/payment/         # x402 confirm, fund wallet, receipts
+  components/dashboard/       # Analytics, agents, chat
+  constants/payment-constants.ts  # Imports shared/payment-constants.json
+```
