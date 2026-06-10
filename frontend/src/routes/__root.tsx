@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { WalletProviders } from "@/components/WalletProviders";
+import { WalletProviders } from "@/components/wallet";
 import {
   Outlet,
   Link,
@@ -10,12 +10,13 @@ import {
 } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
+import { ThemeProvider } from "@/context/ThemeContext";
 import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-aurora px-4">
-      <div className="glass-strong max-w-md rounded-3xl p-10 text-center shadow-float">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+      <div className="oscorp-card max-w-md p-10 text-center shadow-sm">
         <h1 className="text-7xl font-semibold tracking-tight">404</h1>
         <p className="mt-3 text-muted-foreground">This page drifted into the aether.</p>
         <Link
@@ -33,8 +34,8 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
   return (
-    <div className="flex min-h-screen items-center justify-center bg-aurora px-4">
-      <div className="glass-strong max-w-md rounded-3xl p-10 text-center shadow-float">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+      <div className="oscorp-card max-w-md p-10 text-center shadow-sm">
         <h1 className="text-xl font-semibold">Something hiccupped</h1>
         <p className="mt-2 text-sm text-muted-foreground">{error.message}</p>
         <button
@@ -56,17 +57,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Oscorp — Your AI growth operator for X" },
+      { title: "Oscorp — Meet your AI CMO" },
       {
         name: "description",
         content:
-          "Oscorp researches trends, drafts viral content, and pays for GTM via x402 on Algorand.",
+          "AI CMO terminal. Analyze your website, fix SEO issues, and generate company marketing documents.",
       },
-      { property: "og:title", content: "Oscorp — Your AI growth operator for X" },
+      { property: "og:title", content: "Oscorp — Meet your AI CMO" },
       {
         property: "og:description",
         content:
-          "Oscorp researches trends, drafts viral content, and pays for GTM via x402 on Algorand.",
+          "Website analysis, SEO, and AI-generated company docs in one dashboard.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -85,7 +86,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap",
       },
     ],
   }),
@@ -97,11 +98,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <HeadContent />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem("oscorp-theme");document.documentElement.classList.toggle("dark",t==="dark");document.documentElement.classList.toggle("oscorp",t==="oscorp");}catch(e){}})();`,
+          }}
+        />
       </head>
-      <body>
+      <body suppressHydrationWarning>
         {children}
         <Scripts />
       </body>
@@ -113,10 +119,12 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   return (
     <QueryClientProvider client={queryClient}>
-      <WalletProviders>
-        <Outlet />
-        <Toaster position="top-center" richColors />
-      </WalletProviders>
+      <ThemeProvider>
+        <WalletProviders>
+          <Outlet />
+          <Toaster position="top-center" richColors />
+        </WalletProviders>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }
