@@ -1,0 +1,21 @@
+{
+  "recipientAddress": "K54ZTTHNDB567Q5J5T73CEJCT3Z3MB6VL35PJBIX57KGRWNGZZLH3BK7S4",
+  "facilitatorFeePayer": "ZMFK2OI7ZBD2U27ISERZC4S6LKM6WMFJPZQ4MYNJDZ2VNBNMBA67RA22AA",
+  "paidAgents": [
+    "reddit",
+    "linkedin",
+    "articles",
+    "hackernews",
+    "brand_voice",
+    "competitors"
+  ],
+  "agentPrices": {
+    "reddit": 0.05,
+    "twitter": 0.02,
+    "linkedin": 0.02,
+    "articles": 0.1,
+    "hackernews": 0.02,
+    "brand_voice": 0.05,
+    "competitors": 0.05
+  }
+}
